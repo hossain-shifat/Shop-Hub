@@ -14,7 +14,7 @@ export default function HomePage() {
     return (
         <div className="min-h-screen">
             {/* Section 1: Hero */}
-            <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-primary via-secondary to-accent overflow-hidden">
+            <section className="relative min-h-[90vh] flex items-center bg-linear-to-br from-primary via-secondary to-accent overflow-hidden">
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
 
                 <div className="container-custom relative z-10">
@@ -37,7 +37,7 @@ export default function HomePage() {
 
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-primary-content leading-tight">
                             Discover Amazing
-                            <span className="block bg-gradient-to-r from-white to-primary-content bg-clip-text text-transparent">
+                            <span className="block bg-linear-to-r from-white to-primary-content bg-clip-text text-transparent">
                                 Products
                             </span>
                         </h1>
@@ -50,7 +50,7 @@ export default function HomePage() {
                             <a href="/products" className="group relative inline-flex items-center gap-3 bg-base-100 text-base-content px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105">
                                 <ShoppingBag className="w-5 h-5" />
                                 Browse Products
-                                <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                <span className="absolute inset-0 rounded-xl bg-linear-to-r from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                             </a>
                             <a href="/login" className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-primary-content px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300">
                                 Get Started
@@ -109,7 +109,7 @@ export default function HomePage() {
                                 className="group"
                             >
                                 <div className="card h-full hover:scale-105 transition-all duration-300 hover:shadow-xl">
-                                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                                    <div className={`inline-flex p-4 rounded-2xl bg-linear-to-br ${feature.color} text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                                         {feature.icon}
                                     </div>
                                     <h3 className="text-2xl font-bold mb-3 text-base-content">{feature.title}</h3>
@@ -167,7 +167,7 @@ export default function HomePage() {
                                             alt={item.name}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
                                         <div className="absolute top-4 right-4">
                                             <span className="bg-error text-error-content px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
                                                 {item.badge}
@@ -199,7 +199,7 @@ export default function HomePage() {
             </section>
 
             {/* Section 4: Statistics */}
-            <section className="section-padding bg-gradient-to-br from-neutral to-neutral-content/90">
+            <section className="section-padding bg-linear-to-br from-neutral to-neutral-content/90">
                 <div className="container-custom">
                     <div className="grid md:grid-cols-4 gap-8">
                         {[
@@ -277,7 +277,7 @@ export default function HomePage() {
                                     "{testimonial.review}"
                                 </p>
                                 <div className="flex items-center mt-auto pt-6 border-t border-base-300">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-primary-content font-bold mr-4">
+                                    <div className="w-12 h-12 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-primary-content font-bold mr-4">
                                         {testimonial.avatar}
                                     </div>
                                     <div>
@@ -292,7 +292,7 @@ export default function HomePage() {
             </section>
 
             {/* Section 6: Call to Action */}
-            <section className="section-padding bg-gradient-to-br from-primary via-secondary to-accent relative overflow-hidden">
+            <section className="section-padding bg-linear-to-br from-primary via-secondary to-accent relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
 
                 <div className="container-custom relative z-10">
@@ -332,9 +332,9 @@ export default function HomePage() {
                         {...fadeInUp}
                         className="max-w-3xl mx-auto"
                     >
-                        <div className="card bg-gradient-to-br from-primary/5 to-secondary/5">
+                        <div className="card bg-linear-to-br from-primary/5 to-secondary/5">
                             <div className="text-center mb-8">
-                                <div className="inline-flex p-4 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-6">
+                                <div className="inline-flex p-4 bg-linear-to-br from-primary to-secondary rounded-2xl mb-6">
                                     <Mail className="w-8 h-8 text-primary-content" />
                                 </div>
                                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-base-content">
