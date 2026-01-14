@@ -121,7 +121,7 @@ export default function AddProductPage() {
                     </motion.span>
 
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">
-                        Add New <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">Product</span>
+                        Add New <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-secondary to-accent">Product</span>
                     </h1>
                     <p className="text-base-content/70 text-lg max-w-2xl mx-auto">
                         Fill in the details below to add a new product to your catalog
@@ -305,7 +305,7 @@ export default function AddProductPage() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-6 border-2 border-primary/20"
+                                className="bg-linear-to-br from-primary/5 to-secondary/5 rounded-xl p-6 border-2 border-primary/20"
                             >
                                 <h3 className="text-lg font-bold text-base-content mb-4 flex items-center gap-2">
                                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

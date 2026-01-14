@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ShoppingBag, Truck, Shield, Star, Award, CheckCircle, Users, Globe, Clock, Mail } from 'lucide-react'
+import Link from 'next/link'
 
 export default function HomePage() {
     const fadeInUp = {
@@ -47,11 +48,11 @@ export default function HomePage() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            <a href="/products" className="group relative inline-flex items-center gap-3 bg-base-100 text-base-content px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                            <Link href="/products" className="group relative inline-flex items-center gap-3 bg-base-100 text-base-content px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 hover:scale-105">
                                 <ShoppingBag className="w-5 h-5" />
                                 Browse Products
                                 <span className="absolute inset-0 rounded-xl bg-linear-to-r from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                            </a>
+                            </Link>
                             <a href="/login" className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-primary-content px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300">
                                 Get Started
                                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,12 +186,12 @@ export default function HomePage() {
                                             ))}
                                         </div>
                                     </div>
-                                    <a href="/products" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all group">
+                                    <Link href="/products" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all group">
                                         View Details
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                         </svg>
-                                    </a>
+                                    </Link>
                                 </div>
                             </motion.div>
                         ))}
@@ -235,7 +236,7 @@ export default function HomePage() {
                     <motion.div {...fadeInUp} className="text-center mb-16">
                         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">Customer Reviews</h2>
                         <p className="text-base-content/70 text-lg max-w-2xl mx-auto">
-                            Don't just take our word for it - hear from our satisfied customers
+                            Don&apos;t just take our word for it - hear from our satisfied customers
                         </p>
                     </motion.div>
 
@@ -274,7 +275,7 @@ export default function HomePage() {
                                     ))}
                                 </div>
                                 <p className="text-base-content/80 leading-relaxed mb-6 italic">
-                                    "{testimonial.review}"
+                                    &quot;{testimonial.review}&ldquo;
                                 </p>
                                 <div className="flex items-center mt-auto pt-6 border-t border-base-300">
                                     <div className="w-12 h-12 bg-linear-to-br from-primary to-secondary rounded-full flex items-center justify-center text-primary-content font-bold mr-4">
