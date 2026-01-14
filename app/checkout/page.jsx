@@ -50,9 +50,8 @@ export default function CheckoutPage() {
         const { name, value, type, checked } = e.target
 
         if (name === 'cardNumber') {
-            // Format card number with spaces
-            const formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim()
-            setPaymentInfo({ ...paymentInfo, [name]: formattedValue })
+            const formattedValue = value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim();
+            setPaymentInfo({ ...paymentInfo, [name]: formattedValue });
         } else if (name === 'expiryDate') {
             // Format expiry date MM/YY
             const formattedValue = value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5)
@@ -75,8 +74,9 @@ export default function CheckoutPage() {
     }
 
     const validatePayment = () => {
+        const cardNumberDigits = paymentInfo.cardNumber.replace(/\s/g, '');
         return (
-            paymentInfo.cardNumber.replace(/\s/g, '').length === 16 &&
+            cardNumberDigits.length >= 16 &&
             paymentInfo.cardName.trim() !== '' &&
             paymentInfo.expiryDate.length === 5 &&
             paymentInfo.cvv.length >= 3
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
         transition: { duration: 0.5 }
     }
 
-    if (cartItems.length === 0 && !isProcessing) {
+    if ((!cartItems || cartItems.length === 0) && !isProcessing) {
         router.push('/cart')
         return null
     }
@@ -187,8 +187,8 @@ export default function CheckoutPage() {
                                     <div className="flex flex-col items-center">
                                         <div
                                             className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep >= step.number
-                                                    ? 'bg-gradient-to-r from-primary to-secondary text-primary-content'
-                                                    : 'bg-base-300 text-base-content/50'
+                                                ? 'bg-linear-to-r from-primary to-secondary text-primary-content'
+                                                : 'bg-base-300 text-base-content/50'
                                                 }`}
                                         >
                                             {currentStep > step.number ? (
@@ -204,8 +204,8 @@ export default function CheckoutPage() {
                                     </div>
                                     {index < steps.length - 1 && (
                                         <div className={`flex-1 h-1 mx-4 transition-all duration-300 ${currentStep > step.number
-                                                ? 'bg-gradient-to-r from-primary to-secondary'
-                                                : 'bg-base-300'
+                                            ? 'bg-linear-to-r from-primary to-secondary'
+                                            : 'bg-base-300'
                                             }`} />
                                     )}
                                 </div>
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
                                     className="card bg-base-200"
                                 >
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
                                             <MapPin className="w-5 h-5 text-white" />
                                         </div>
                                         <h2 className="text-2xl font-bold text-base-content">Shipping Information</h2>
@@ -368,7 +368,7 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={handleContinue}
                                         disabled={!validateShipping()}
-                                        className="w-full mt-6 bg-gradient-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full mt-6 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Continue to Payment
                                     </button>
@@ -385,7 +385,7 @@ export default function CheckoutPage() {
                                     className="card bg-base-200"
                                 >
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
                                             <CreditCard className="w-5 h-5 text-white" />
                                         </div>
                                         <h2 className="text-2xl font-bold text-base-content">Payment Information</h2>
@@ -417,7 +417,7 @@ export default function CheckoutPage() {
                                                 name="cardName"
                                                 value={paymentInfo.cardName}
                                                 onChange={handlePaymentChange}
-                                                placeholder="John Doe"
+                                                placeholder="Card Holder Name"
                                                 className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
                                                 required
                                             />
@@ -487,7 +487,7 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={handleContinue}
                                             disabled={!validatePayment()}
-                                            className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex-1 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             Review Order
                                         </button>
@@ -559,7 +559,7 @@ export default function CheckoutPage() {
                                         <button
                                             onClick={handlePlaceOrder}
                                             disabled={isProcessing}
-                                            className="flex-1 bg-gradient-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="flex-1 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
                                             {isProcessing ? (
                                                 <>
@@ -638,7 +638,7 @@ export default function CheckoutPage() {
                                     <div className="border-t border-base-300 pt-3">
                                         <div className="flex justify-between items-baseline">
                                             <span className="text-lg font-semibold text-base-content">Total</span>
-                                            <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                            <span className="text-3xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
                                                 ${total.toFixed(2)}
                                             </span>
                                         </div>
