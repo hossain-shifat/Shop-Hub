@@ -1,6 +1,14 @@
 import Link from 'next/link'
 import Logo from './Logo'
 
+const footerRoutes = [
+    { name: 'Help Center', href: '/help' },
+    { name: 'Shipping Info', href: '/shipping' },
+    { name: 'Returns', href: '/returns' },
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms' },
+]
+
 export default function Footer() {
     return (
         <footer className="bg-base-300 text-base-content border-t border-base-content/10">
@@ -8,7 +16,7 @@ export default function Footer() {
                 <div className="grid md:grid-cols-4 gap-12">
                     {/* Company Info */}
                     <div className="md:col-span-1 space-y-5">
-                        <Logo/>
+                        <Logo />
                         <p className="text-base-content/70 mb-6 leading-relaxed">
                             Your trusted destination for premium products and exceptional service. Quality you can trust, delivered with care.
                         </p>
@@ -38,8 +46,8 @@ export default function Footer() {
                             {[
                                 { name: 'Home', href: '/' },
                                 { name: 'Products', href: '/products' },
-                                { name: 'About Us', href: '#' },
-                                { name: 'Contact', href: '#' },
+                                { name: 'About Us', href: '/about' },
+                                { name: 'Contact', href: '/contact' },
                             ].map((link, idx) => (
                                 <li key={idx}>
                                     <Link
@@ -59,22 +67,16 @@ export default function Footer() {
                     <div>
                         <h4 className="text-lg font-bold mb-6 text-base-content">Support</h4>
                         <ul className="space-y-3">
-                            {[
-                                'Help Center',
-                                'Shipping Info',
-                                'Returns',
-                                'Privacy Policy',
-                                'Terms of Service',
-                            ].map((item, idx) => (
+                            {footerRoutes.map((item, idx) => (
                                 <li key={idx}>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        href={item.href}
                                         className="text-base-content/70 hover:text-primary transition-colors inline-flex items-center group"
                                     >
                                         <span className="group-hover:translate-x-1 transition-transform">
-                                            {item}
+                                            {item.name}
                                         </span>
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

@@ -89,7 +89,7 @@ export default function ContactPage() {
     return (
         <div className="min-h-screen bg-base-100">
             {/* Hero Section */}
-            <section className="relative section-padding bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
+            <section className="relative section-padding bg-linear-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
                 <div className="absolute top-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-20 left-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
 
@@ -105,8 +105,8 @@ export default function ContactPage() {
                         </span>
 
                         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-base-content">
-                            We'd Love to{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
+                            We&apos;d Love to{' '}
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-secondary to-accent">
                                 Hear From You
                             </span>
                         </h1>
@@ -130,7 +130,7 @@ export default function ContactPage() {
                                 transition={{ delay: idx * 0.1 }}
                                 className="card bg-base-100 group hover:shadow-xl transition-all text-center"
                             >
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${info.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
+                                <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${info.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
                                     <info.icon className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="text-lg font-bold text-base-content mb-2">
@@ -155,7 +155,7 @@ export default function ContactPage() {
                                         Send Us a Message
                                     </h2>
                                     <p className="text-base-content/70">
-                                        Fill out the form below and we'll get back to you within 24 hours.
+                                        Fill out the form below and we&apos;ll get back to you within 24 hours.
                                     </p>
                                 </div>
 
@@ -265,7 +265,7 @@ export default function ContactPage() {
                             {/* Quick FAQs */}
                             <div className="card bg-base-200">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
                                         <MessageSquare className="w-6 h-6 text-white" />
                                     </div>
                                     <h3 className="text-2xl font-bold text-base-content">
@@ -295,7 +295,7 @@ export default function ContactPage() {
                             </div>
 
                             {/* Office Hours */}
-                            <div className="card bg-gradient-to-br from-primary/10 to-secondary/10 border-2 border-primary/20">
+                            <div className="card bg-linear-to-br from-primary/10 to-secondary/10 border-2 border-primary/20">
                                 <h3 className="text-xl font-bold text-base-content mb-4">
                                     📅 Office Hours
                                 </h3>
@@ -348,14 +348,14 @@ export default function ContactPage() {
                             Visit Our Office
                         </h2>
                         <p className="text-base-content/70 text-lg">
-                            Come say hello! We'd love to meet you in person.
+                            Come say hello! We&apos;d love to meet you in person.
                         </p>
                     </motion.div>
 
                     <motion.div
                         {...fadeInUp}
                         transition={{ delay: 0.2 }}
-                        className="card bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 h-96 flex items-center justify-center"
+                        className="card bg-linear-to-br from-primary/20 via-secondary/20 to-accent/20 h-96 flex items-center justify-center"
                     >
                         <div className="text-center">
                             <div className="text-7xl mb-4">📍</div>
