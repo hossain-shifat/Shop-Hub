@@ -79,10 +79,10 @@ export default function Navbar() {
     }
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 ${isScrolled ? 'bg-base-300 shadow-lg border-b border-base-300' : 'bg-base-200'
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 ${isScrolled ? 'bg-base-200 shadow-lg border-b border-base-300' : 'bg-base-200'
             }`}>
             <div className="container-custom">
-                <div className="flex items-center justify-between h-20 md:h-auto">
+                <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Logo />
 
@@ -101,9 +101,9 @@ export default function Navbar() {
                         </div>
 
                         {/* Cart Button */}
-                        <a
+                        <Link
                             href="/cart"
-                            className="relative p-2.5 rounded-lg bg-base-200 hover:bg-base-300 transition-all duration-200 group"
+                            className="relative p-2.5 rounded-lg bg-base-300 hover:bg-base-200 transition-all duration-200 group"
                             aria-label="Shopping cart"
                         >
                             <ShoppingCart className="w-5 h-5 text-base-content group-hover:scale-110 transition-transform" />
@@ -112,12 +112,12 @@ export default function Navbar() {
                                     {cartItemsCount > 9 ? '9+' : cartItemsCount}
                                 </span>
                             )}
-                        </a>
+                        </Link>
 
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="p-2.5 rounded-lg bg-base-200 hover:bg-base-300 transition-all duration-200 group"
+                            className="p-2.5 rounded-lg bg-base-300 hover:bg-base-200 transition-all duration-200 group"
                             aria-label="Toggle theme"
                         >
                             {mounted && (
@@ -131,10 +131,10 @@ export default function Navbar() {
 
                         {/* User Profile / Login */}
                         {isLoggedIn ? (
-                            <div className="relative profile-dropdown">
+                            <div className="relative profile-dropdown bg-base-300 rounded-xl">
                                 <button
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-all duration-200 group"
+                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-all duration-200 group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="hidden md:block text-right">
