@@ -37,8 +37,8 @@ A modern, full-stack e-commerce product showcase built with Next.js 16, featurin
 
 1. **Clone the repository**
 ```bash
-git clone <your-repo-url>
-cd assignment-09
+git clone https://github.com/hossain-shifat/Shop-Hub
+cd ShopHub
 ```
 
 2. **Install dependencies**
@@ -63,7 +63,7 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 ## 📁 Project Structure
 
 ```
-assignment-09/
+project/
 ├── app/
 │   ├── layout.js                 # Root layout with providers
 │   ├── page.js                   # Landing page (7 sections)
@@ -202,6 +202,11 @@ No environment variables required for basic functionality. All authentication is
 - **framer-motion**: ^11.0.0 - Animation library
 - **react-hot-toast**: ^2.4.1 - Toast notifications
 - **js-cookie**: ^3.0.5 - Cookie management
+- **html2canvas**: ^1.4.1 - Invoice
+- **jspdf**: ^4.0.0 - Convert & Download Invoice
+- **lucide-react**: ^0.562.0 - Icons
+- **react-confetti**: ^6.4.0 - Confetti
+- **daisyui**: ^5.5.14 - Style
 
 ### Dev Dependencies
 - **@tailwindcss/postcss**: ^4 - Tailwind PostCSS plugin
@@ -219,7 +224,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin <your-github-repo>
+git remote add origin https://github.com/hossain-shifat/Shop-Hub
 git push -u origin main
 ```
 
@@ -234,7 +239,7 @@ npm run build
 npm start
 ```
 
-## 🎓 Assignment Requirements
+## 🎓 Project Requirements
 
 ### ✅ Completed Requirements
 1. ✅ Landing page with 7+ sections
@@ -287,13 +292,12 @@ PORT=3001 npm run dev
 
 ## 📄 License
 
-This project is created for educational purposes as part of an assignment.
+This project is created for educational purposes as part of an project.
 
 ## 👨‍💻 Author
 
-**Your Name**
-- Assignment: 09 - Next.js Full-Stack Application
-- Course: [Course Code]
+**Hossain-Shifat**
+- ShopHub - Next.js Full-Stack Application
 - Date: January 2026
 
 ## 🙏 Acknowledgments
