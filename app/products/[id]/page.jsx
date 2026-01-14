@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/contexts/CartContext'
 import { Heart, Share2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function ProductDetailPage() {
     const params = useParams()
@@ -41,7 +42,7 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         addToCart(product, quantity)
-        alert(`${quantity} ${product.name}(s) added to cart!`)
+        toast.success(`${quantity} ${product.name}(s) added to cart!`)
     }
 
     const handleWishlistToggle = () => {
@@ -66,7 +67,7 @@ export default function ProductDetailPage() {
         } else {
             // Fallback: copy to clipboard
             navigator.clipboard.writeText(window.location.href)
-            alert('Link copied to clipboard!')
+            toast.success('Link copied to clipboard!')
         }
     }
 

@@ -8,8 +8,11 @@ import { CartProvider } from '@/contexts/CartContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-    title: 'Product Showcase - Next.js Assignment',
+    title: 'ShopHub',
     description: 'A modern product showcase application built with Next.js',
+    icons: {
+        icon: '/icon.png',
+    }
 }
 
 export default function RootLayout({ children }) {

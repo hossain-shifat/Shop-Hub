@@ -232,7 +232,7 @@ export default function Invoice({ order }) {
                                 fontSize: '14px',
                                 color: '#666666',
                                 margin: '8px 0 0 0'
-                            }}>contact@producthub.com</p>
+                            }}>contact@shophub.com</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
@@ -579,7 +579,7 @@ export default function Invoice({ order }) {
                             margin: '0'
                         }}>
                             <span style={{ fontWeight: '600' }}>Thank you for your purchase!</span> Your order will be processed within 24 hours.
-                            For any inquiries, please contact our support team at support@producthub.com or call +1 (555) 123-4567.
+                            For any inquiries, please contact our support team at support@shophub.com or call +1 (555) 123-4567.
                         </p>
                     </div>
 
