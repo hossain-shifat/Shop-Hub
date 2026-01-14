@@ -122,11 +122,11 @@ export default function Footer() {
                             &copy; {new Date().getFullYear()} ShopHub. All rights reserved.
                         </p>
                         <div className="flex items-center gap-6 text-sm text-base-content/60">
-                            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+                            <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
                             <span>•</span>
-                            <a href="#" className="hover:text-primary transition-colors">Terms</a>
+                            <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
                             <span>•</span>
-                            <a href="#" className="hover:text-primary transition-colors">Cookies</a>
+                            <Link href="cookies" className="hover:text-primary transition-colors">Cookies</Link>
                         </div>
                     </div>
                 </div>
