@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
             <body className={inter.className}>
                 <CartProvider>
                     <Navbar />
-                    <main className="min-h-screen bg-base-100 overflow-hidden">
+                    <main className="min-h-screen bg-base-100 my-20 overflow-hidden">
                         {children}
                     </main>
                     <Footer />

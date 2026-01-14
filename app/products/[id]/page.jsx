@@ -89,7 +89,7 @@ export default function ProductDetailPage() {
     const inWishlist = isInWishlist(product.id)
 
     return (
-        <div className="min-h-screen pt-24">
+        <div className="min-h-screen">
             <div className="section-padding">
                 <div className="container-custom">
                     {/* Breadcrumb */}
