@@ -55,7 +55,7 @@ export default function ShippingPage() {
     return (
         <div className="min-h-screen bg-base-100">
             {/* Hero */}
-            <section className="relative section-padding bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
+            <section className="relative section-padding bg-linear-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
                 <div className="absolute top-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
 
                 <div className="container-custom relative z-10">
@@ -70,7 +70,7 @@ export default function ShippingPage() {
 
                         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-base-content">
                             Shipping &{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-secondary to-accent">
                                 Delivery
                             </span>
                         </h1>
@@ -100,7 +100,7 @@ export default function ShippingPage() {
                                 transition={{ delay: idx * 0.1 }}
                                 className="card bg-base-100 hover:shadow-xl transition-all"
                             >
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4 mx-auto">
+                                <div className="w-14 h-14 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center mb-4 mx-auto">
                                     <method.icon className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-base-content mb-2 text-center">
@@ -168,7 +168,7 @@ export default function ShippingPage() {
                         <div className="relative">
                             {/* Progress Line */}
                             <div className="absolute top-8 left-0 right-0 h-1 bg-base-300 hidden md:block"></div>
-                            <div className="absolute top-8 left-0 w-1/2 h-1 bg-gradient-to-r from-primary to-secondary hidden md:block"></div>
+                            <div className="absolute top-8 left-0 w-1/2 h-1 bg-linear-to-r from-primary to-secondary hidden md:block"></div>
 
                             <div className="grid md:grid-cols-5 gap-4">
                                 {trackingSteps.map((item, idx) => (
@@ -179,7 +179,7 @@ export default function ShippingPage() {
                                         className="relative z-10"
                                     >
                                         <div className="card bg-base-100 text-center hover:shadow-xl transition-all">
-                                            <div className={`w-16 h-16 rounded-full ${idx <= 2 ? 'bg-gradient-to-br from-primary to-secondary' : 'bg-base-300'} flex items-center justify-center text-3xl mx-auto mb-3`}>
+                                            <div className={`w-16 h-16 rounded-full ${idx <= 2 ? 'bg-linear-to-br from-primary to-secondary' : 'bg-base-300'} flex items-center justify-center text-3xl mx-auto mb-3`}>
                                                 {item.icon}
                                             </div>
                                             <h3 className="font-bold text-base-content mb-1">{item.step}</h3>
@@ -205,11 +205,11 @@ export default function ShippingPage() {
                     <div className="grid md:grid-cols-2 gap-6">
                         <motion.div {...fadeInUp} className="card bg-base-200">
                             <div className="flex items-start gap-3">
-                                <CheckCircle className="w-6 h-6 text-success flex-shrink-0 mt-1" />
+                                <CheckCircle className="w-6 h-6 text-success shrink-0 mt-1" />
                                 <div>
                                     <h3 className="font-bold text-base-content mb-2">Processing Time</h3>
                                     <p className="text-base-content/70 text-sm">
-                                        Orders are processed within 1-2 business days. You'll receive a confirmation email once your order ships.
+                                        Orders are processed within 1-2 business days. You&apos;ll receive a confirmation email once your order ships.
                                     </p>
                                 </div>
                             </div>
@@ -217,7 +217,7 @@ export default function ShippingPage() {
 
                         <motion.div {...fadeInUp} transition={{ delay: 0.1 }} className="card bg-base-200">
                             <div className="flex items-start gap-3">
-                                <Package className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+                                <Package className="w-6 h-6 text-primary shrink-0 mt-1" />
                                 <div>
                                     <h3 className="font-bold text-base-content mb-2">Package Tracking</h3>
                                     <p className="text-base-content/70 text-sm">
@@ -229,7 +229,7 @@ export default function ShippingPage() {
 
                         <motion.div {...fadeInUp} transition={{ delay: 0.2 }} className="card bg-base-200">
                             <div className="flex items-start gap-3">
-                                <Globe className="w-6 h-6 text-secondary flex-shrink-0 mt-1" />
+                                <Globe className="w-6 h-6 text-secondary shrink-0 mt-1" />
                                 <div>
                                     <h3 className="font-bold text-base-content mb-2">International Shipping</h3>
                                     <p className="text-base-content/70 text-sm">
@@ -241,7 +241,7 @@ export default function ShippingPage() {
 
                         <motion.div {...fadeInUp} transition={{ delay: 0.3 }} className="card bg-base-200">
                             <div className="flex items-start gap-3">
-                                <MapPin className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+                                <MapPin className="w-6 h-6 text-accent shrink-0 mt-1" />
                                 <div>
                                     <h3 className="font-bold text-base-content mb-2">Delivery Address</h3>
                                     <p className="text-base-content/70 text-sm">
@@ -255,7 +255,7 @@ export default function ShippingPage() {
             </section>
 
             {/* Contact CTA */}
-            <section className="section-padding bg-gradient-to-r from-primary via-secondary to-accent text-primary-content">
+            <section className="section-padding bg-linear-to-r from-primary via-secondary to-accent text-primary-content">
                 <div className="container-custom text-center">
                     <motion.div {...fadeInUp}>
                         <h2 className="text-4xl font-bold mb-4">Have Shipping Questions?</h2>

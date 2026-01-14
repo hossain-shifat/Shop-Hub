@@ -117,7 +117,7 @@ export default function RegisterPage() {
                         </div>
                         <h1 className="text-5xl font-bold text-base-content leading-tight">
                             Start Your Journey with
-                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent mt-2">
+                            <span className="block text-transparent bg-clip-text bg-linear-to-r from-primary via-secondary to-accent mt-2">
                                 ProductHub
                             </span>
                         </h1>
@@ -134,7 +134,7 @@ export default function RegisterPage() {
                                     transition={{ delay: 0.2 + idx * 0.1 }}
                                     className="flex items-center gap-4"
                                 >
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl">
                                         {item.icon}
                                     </div>
                                     <span className="text-base-content/80 text-lg font-medium">{item.text}</span>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                 >
                     <div className="card bg-base-100 shadow-2xl">
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
+                            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-primary via-secondary to-accent flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
                                 🛍️
                             </div>
                             <h2 className="text-3xl font-bold text-base-content mb-2">
