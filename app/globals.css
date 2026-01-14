@@ -101,3 +101,19 @@
     @apply bg-base-100 rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 border border-base-300;
   }
 }
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* IE / Edge (legacy) */
+* {
+  -ms-overflow-style: none;
+}

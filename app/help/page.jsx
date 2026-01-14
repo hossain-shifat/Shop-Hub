@@ -100,7 +100,7 @@ export default function HelpCenterPage() {
     return (
         <div className="min-h-screen bg-base-100">
             {/* Hero Section */}
-            <section className="relative section-padding bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
+            <section className="relative section-padding bg-linear-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
                 <div className="absolute top-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-20 left-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
 
@@ -117,7 +117,7 @@ export default function HelpCenterPage() {
 
                         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-base-content">
                             How Can We{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">
+                            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary via-secondary to-accent">
                                 Help You?
                             </span>
                         </h1>
@@ -163,7 +163,7 @@ export default function HelpCenterPage() {
                                 transition={{ delay: idx * 0.1 }}
                                 className="card bg-base-100 group hover:shadow-xl transition-all cursor-pointer"
                             >
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                                <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                                     <category.icon className="w-7 h-7 text-white" />
                                 </div>
                                 <h3 className="text-xl font-bold text-base-content mb-2">
@@ -223,7 +223,7 @@ export default function HelpCenterPage() {
                         <motion.div {...fadeInUp} className="text-center py-12">
                             <div className="text-6xl mb-4">🔍</div>
                             <p className="text-xl text-base-content/70">
-                                No results found for "{searchQuery}"
+                                No results found for &quot;{searchQuery}&ldquo;
                             </p>
                             <button
                                 onClick={() => setSearchQuery('')}
@@ -241,7 +241,7 @@ export default function HelpCenterPage() {
                 <div className="container-custom">
                     <motion.div
                         {...fadeInUp}
-                        className="card bg-gradient-to-br from-primary via-secondary to-accent text-primary-content text-center max-w-3xl mx-auto"
+                        className="card bg-linear-to-br from-primary via-secondary to-accent text-primary-content text-center max-w-3xl mx-auto"
                     >
                         <div className="text-5xl mb-4">💬</div>
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
