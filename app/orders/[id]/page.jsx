@@ -107,7 +107,7 @@ export default function OrderDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen pt-32 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-base-content/70 text-lg">Loading order details...</p>
@@ -118,7 +118,7 @@ export default function OrderDetailsPage() {
 
     if (!order) {
         return (
-            <div className="min-h-screen pt-32">
+            <div className="min-h-screen">
                 <div className="section-padding">
                     <div className="container-custom">
                         <motion.div {...fadeInUp} className="text-center">
@@ -144,7 +144,7 @@ export default function OrderDetailsPage() {
     const delivery = getDeliveryEstimate(order.status)
 
     return (
-        <div className="min-h-screen pt-32">
+        <div className="min-h-screen">
             <div className="section-padding">
                 <div className="container-custom max-w-6xl">
                     {/* Back Button */}

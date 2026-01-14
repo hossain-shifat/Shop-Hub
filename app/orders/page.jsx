@@ -1,25 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import {
-    Package,
-    Truck,
-    CheckCircle,
-    XCircle,
-    Eye,
-    Download,
-    MapPin,
-    Calendar,
-    CreditCard
-} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Package, Truck, CheckCircle, XCircle, Eye, MapPin, Calendar, CreditCard, X } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import Invoice from '@/components/Invoice'
+
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [selectedStatus, setSelectedStatus] = useState('all')
+    const [selectedOrder, setSelectedOrder] = useState(null)
 
     useEffect(() => {
         fetchOrders()
@@ -27,10 +20,6 @@ export default function OrdersPage() {
 
     const fetchOrders = async () => {
         try {
-            // Simulate fetching orders - replace with actual API call
-            // const response = await fetch('/api/orders')
-            // const data = await response.json()
-
             const savedOrders = localStorage.getItem('orders')
             if (savedOrders) {
                 setOrders(JSON.parse(savedOrders))
@@ -64,6 +53,7 @@ export default function OrdersPage() {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'pending':
+                return <Package className="w-5 h-5" />
             case 'processing':
                 return <Package className="w-5 h-5" />
             case 'shipped':
@@ -77,10 +67,9 @@ export default function OrdersPage() {
         }
     }
 
-    const filteredOrders =
-        selectedStatus === 'all'
-            ? orders
-            : orders.filter((order) => order.status === selectedStatus)
+    const filteredOrders = selectedStatus === 'all'
+        ? orders
+        : orders.filter(order => order.status === selectedStatus)
 
     const fadeInUp = {
         initial: { opacity: 0, y: 20 },
@@ -90,10 +79,10 @@ export default function OrdersPage() {
 
     const statusFilters = [
         { value: 'all', label: 'All Orders', count: orders.length },
-        { value: 'pending', label: 'Pending', count: orders.filter((o) => o.status === 'pending').length },
-        { value: 'processing', label: 'Processing', count: orders.filter((o) => o.status === 'processing').length },
-        { value: 'shipped', label: 'Shipped', count: orders.filter((o) => o.status === 'shipped').length },
-        { value: 'delivered', label: 'Delivered', count: orders.filter((o) => o.status === 'delivered').length }
+        { value: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'pending').length },
+        { value: 'processing', label: 'Processing', count: orders.filter(o => o.status === 'processing').length },
+        { value: 'shipped', label: 'Shipped', count: orders.filter(o => o.status === 'shipped').length },
+        { value: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered').length },
     ]
 
     if (isLoading) {
@@ -137,11 +126,17 @@ export default function OrdersPage() {
         <div className="min-h-screen pt-32">
             <div className="section-padding">
                 <div className="container-custom">
+                    {/* Header */}
                     <motion.div {...fadeInUp} className="mb-8">
-                        <h1 className="text-4xl md:text-5xl font-bold text-base-content mb-2">My Orders</h1>
-                        <p className="text-base-content/70">Track and manage your orders</p>
+                        <h1 className="text-4xl md:text-5xl font-bold text-base-content mb-2">
+                            My Orders
+                        </h1>
+                        <p className="text-base-content/70">
+                            Track and manage your orders
+                        </p>
                     </motion.div>
 
+                    {/* Status Filters */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -164,6 +159,7 @@ export default function OrdersPage() {
                         </div>
                     </motion.div>
 
+                    {/* Orders List */}
                     <div className="space-y-6">
                         {filteredOrders.map((order, index) => (
                             <motion.div
@@ -173,6 +169,7 @@ export default function OrdersPage() {
                                 transition={{ delay: index * 0.1 }}
                                 className="card bg-base-200"
                             >
+                                {/* Order Header */}
                                 <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-base-300">
                                     <div className="flex flex-wrap items-center gap-4">
                                         <div>
@@ -183,13 +180,16 @@ export default function OrdersPage() {
                                         <div>
                                             <div className="text-sm text-base-content/60">Date</div>
                                             <div className="font-semibold text-base-content flex items-center gap-2">
-                                                <Calendar className="w-4 h-4" /> {order.date}
+                                                <Calendar className="w-4 h-4" />
+                                                {order.date}
                                             </div>
                                         </div>
                                         <div className="h-8 w-px bg-base-300"></div>
                                         <div>
                                             <div className="text-sm text-base-content/60">Total</div>
-                                            <div className="font-bold text-primary text-lg">${order.total.toFixed(2)}</div>
+                                            <div className="font-bold text-primary text-lg">
+                                                ${order.total.toFixed(2)}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -200,14 +200,22 @@ export default function OrdersPage() {
                                     </div>
                                 </div>
 
+                                {/* Order Items */}
                                 <div className="space-y-4 py-4">
                                     {order.items.map((item) => (
                                         <div key={item.id} className="flex gap-4 items-center">
                                             <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-base-300 shrink-0">
-                                                <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                                <Image
+                                                    src={item.image}
+                                                    alt={item.name}
+                                                    fill
+                                                    className="object-cover"
+                                                />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-base-content truncate">{item.name}</h3>
+                                                <h3 className="font-semibold text-base-content truncate">
+                                                    {item.name}
+                                                </h3>
                                                 <p className="text-sm text-base-content/60">
                                                     Qty: {item.quantity} × ${item.price.toFixed(2)}
                                                 </p>
@@ -219,6 +227,7 @@ export default function OrdersPage() {
                                     ))}
                                 </div>
 
+                                {/* Shipping Info */}
                                 <div className="pt-4 border-t border-base-300">
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div className="flex items-start gap-3">
@@ -236,22 +245,22 @@ export default function OrdersPage() {
                                             <CreditCard className="w-5 h-5 text-primary mt-1 shrink-0" />
                                             <div>
                                                 <div className="font-semibold text-base-content mb-1">Payment Method</div>
-                                                <div className="text-sm text-base-content/70">{order.paymentMethod}</div>
+                                                <div className="text-sm text-base-content/70">
+                                                    {order.paymentMethod}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                {/* Actions */}
                                 <div className="flex flex-wrap gap-3 pt-4 border-t border-base-300">
-                                    <Link
-                                        href={`/orders/${order.id}`}
+                                    <button
+                                        onClick={() => setSelectedOrder(order)}
                                         className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-content rounded-lg font-semibold hover:opacity-90 transition-opacity"
                                     >
                                         <Eye className="w-4 h-4" />
-                                        View Details
-                                    </Link>
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-base-100 text-base-content rounded-lg font-semibold hover:bg-base-300 transition-all duration-200 border-2 border-base-300">
-                                        <Download className="w-4 h-4" /> Invoice
+                                        View Invoice
                                     </button>
                                     {order.status === 'delivered' && (
                                         <button className="flex items-center gap-2 px-4 py-2 bg-base-100 text-base-content rounded-lg font-semibold hover:bg-base-300 transition-all duration-200 border-2 border-base-300">
@@ -264,7 +273,11 @@ export default function OrdersPage() {
                     </div>
 
                     {filteredOrders.length === 0 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center py-12"
+                        >
                             <Package className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
                             <p className="text-base-content/70 text-lg">
                                 No {selectedStatus !== 'all' ? selectedStatus : ''} orders found
@@ -273,6 +286,38 @@ export default function OrdersPage() {
                     )}
                 </div>
             </div>
+
+            {/* Invoice Modal */}
+            <AnimatePresence>
+                {selectedOrder && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                        onClick={() => setSelectedOrder(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-base-100 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-base-content">Invoice</h2>
+                                <button
+                                    onClick={() => setSelectedOrder(null)}
+                                    className="p-2 hover:bg-base-200 rounded-lg transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            <Invoice order={selectedOrder} />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

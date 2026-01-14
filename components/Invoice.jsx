@@ -1,12 +1,12 @@
 'use client'
 
 import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
+import html2canvas from 'html2canvas-pro'
 import { useRef, useState } from 'react'
 import { Download, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-export default function Invoice({ order, reference = null }) {
+export default function Invoice({ order }) {
     const invoiceRef = useRef(null)
     const [isGenerating, setIsGenerating] = useState(false)
 
@@ -17,13 +17,18 @@ export default function Invoice({ order, reference = null }) {
         try {
             const invoiceElement = invoiceRef.current
 
+            // Create canvas with html2canvas
             const canvas = await html2canvas(invoiceElement, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#ffffff',
                 allowTaint: true,
-                imageTimeout: 10000
+                imageTimeout: 10000,
+                // Ignore elements with certain classes to avoid color parsing issues
+                ignoreElements: (element) => {
+                    return element.classList?.contains('no-pdf')
+                }
             })
 
             const imgData = canvas.toDataURL('image/png')
@@ -98,58 +103,27 @@ export default function Invoice({ order, reference = null }) {
     const { subtotal, shipping, tax, total } = calculateTotals()
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="flex flex-col gap-4">
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="flex gap-3 flex-wrap no-pdf">
                 <button
                     onClick={generatePDF}
                     disabled={isGenerating}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        paddingLeft: '24px',
-                        paddingRight: '24px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        fontWeight: '600',
-                        border: 'none',
-                        cursor: isGenerating ? 'not-allowed' : 'pointer',
-                        background: '#7c3aed',
-                        opacity: isGenerating ? 0.6 : 1,
-                        transition: 'all 300ms'
-                    }}
+                    className="flex items-center gap-2 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <Download size={16} />
+                    <Download className="w-4 h-4" />
                     {isGenerating ? 'Generating...' : 'Download PDF'}
                 </button>
                 <button
                     onClick={handlePrint}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        paddingLeft: '24px',
-                        paddingRight: '24px',
-                        paddingTop: '12px',
-                        paddingBottom: '12px',
-                        backgroundColor: '#f5f5f5',
-                        color: '#342e35',
-                        borderRadius: '8px',
-                        fontWeight: '600',
-                        border: '2px solid #f0f0f0',
-                        cursor: 'pointer',
-                        transition: 'all 300ms'
-                    }}
+                    className="flex items-center gap-2 bg-base-100 text-base-content px-6 py-3 rounded-lg font-semibold hover:bg-base-300 transition-all duration-200 border-2 border-base-300"
                 >
-                    <Printer size={16} />
+                    <Printer className="w-4 h-4" />
                     Print Invoice
                 </button>
             </div>
 
-            {/* Invoice Container */}
+            {/* Invoice Container - Using only standard colors */}
             <div
                 ref={invoiceRef}
                 style={{
@@ -158,7 +132,7 @@ export default function Invoice({ order, reference = null }) {
                     backgroundColor: '#ffffff',
                     color: '#000000',
                     fontFamily: 'Arial, Helvetica, sans-serif',
-                    padding: '32px',
+                    padding: '30px',
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
                 }}
@@ -168,8 +142,8 @@ export default function Invoice({ order, reference = null }) {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-start',
-                    marginBottom: '32px',
-                    paddingBottom: '32px',
+                    marginBottom: '16px',
+                    paddingBottom: '25px',
                     borderBottom: '2px solid #d1d5db'
                 }}>
                     <div>
@@ -243,22 +217,22 @@ export default function Invoice({ order, reference = null }) {
                                 fontWeight: '700',
                                 fontSize: '16px',
                                 margin: '0'
-                            }}>Your Store Name</p>
+                            }}>ShopHub Store</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
                                 margin: '4px 0'
-                            }}>123 Business Street</p>
+                            }}>123 E-Commerce Street</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
                                 margin: '0'
-                            }}>City, State 12345</p>
+                            }}>Digital City, DC 12345</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
                                 margin: '8px 0 0 0'
-                            }}>contact@yourstore.com</p>
+                            }}>contact@producthub.com</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
@@ -281,7 +255,7 @@ export default function Invoice({ order, reference = null }) {
                                 fontWeight: '700',
                                 fontSize: '16px',
                                 margin: '0'
-                            }}>{order.customerName || 'Customer Name'}</p>
+                            }}>{order.customerName || 'Valued Customer'}</p>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#666666',
@@ -303,7 +277,7 @@ export default function Invoice({ order, reference = null }) {
                                 fontSize: '14px',
                                 color: '#666666',
                                 margin: '8px 0 0 0'
-                            }}>{order.customerEmail || 'email@example.com'}</p>
+                            }}>{order.customerEmail || 'customer@email.com'}</p>
                         </div>
                     </div>
                 </div>
@@ -313,7 +287,7 @@ export default function Invoice({ order, reference = null }) {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
                     gap: '16px',
-                    marginBottom: '32px',
+                    marginBottom: '20px',
                     padding: '16px',
                     backgroundColor: '#f3f4f6',
                     borderRadius: '8px'
@@ -526,7 +500,7 @@ export default function Invoice({ order, reference = null }) {
                                 backgroundColor: '#111827',
                                 color: 'white',
                                 borderRadius: '8px',
-                                marginTop: '16px'
+                                marginTop: '10px'
                             }}>
                                 <span style={{ fontWeight: '700' }}>TOTAL</span>
                                 <span style={{
@@ -546,8 +520,8 @@ export default function Invoice({ order, reference = null }) {
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: '1fr 1fr',
-                        gap: '24px',
-                        marginBottom: '24px'
+                        gap: '20px',
+                        marginBottom: '15px'
                     }}>
                         <div>
                             <h4 style={{
@@ -596,7 +570,7 @@ export default function Invoice({ order, reference = null }) {
                         border: '1px solid #3b82f6',
                         borderRadius: '8px',
                         padding: '16px',
-                        marginBottom: '24px'
+                        marginBottom: '10px'
                     }}>
                         <p style={{
                             fontSize: '12px',
@@ -605,13 +579,13 @@ export default function Invoice({ order, reference = null }) {
                             margin: '0'
                         }}>
                             <span style={{ fontWeight: '600' }}>Thank you for your purchase!</span> Your order will be processed within 24 hours.
-                            For any inquiries, please contact our support team at support@yourstore.com or call +1 (555) 123-4567.
+                            For any inquiries, please contact our support team at support@producthub.com or call +1 (555) 123-4567.
                         </p>
                     </div>
 
                     <div style={{
                         textAlign: 'center',
-                        paddingTop: '16px',
+                        paddingTop: '10px',
                         borderTop: '1px solid #e5e7eb'
                     }}>
                         <p style={{
@@ -626,7 +600,7 @@ export default function Invoice({ order, reference = null }) {
                             color: '#666666',
                             margin: '8px 0 0 0'
                         }}>
-                            © 2024 Your Store Name. All rights reserved.
+                            © 2026 ShopHub. All rights reserved.
                         </p>
                     </div>
                 </div>
