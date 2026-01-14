@@ -200,7 +200,7 @@ export default function HomePage() {
             </section>
 
             {/* Section 4: Statistics */}
-            <section className="section-padding bg-linear-to-br from-neutral to-neutral-content/90">
+            <section className="section-padding bg-linear-to-br from-primary via-secondary to-accent relative">
                 <div className="container-custom">
                     <div className="grid md:grid-cols-4 gap-8">
                         {[
