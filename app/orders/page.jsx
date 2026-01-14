@@ -118,11 +118,11 @@ export default function OrdersPage() {
                             </div>
                             <h1 className="text-4xl font-bold text-base-content mb-4">No Orders Yet</h1>
                             <p className="text-base-content/70 mb-8 text-lg">
-                                You haven't placed any orders yet. Start shopping to see your orders here!
+                                You haven&apos;t placed any orders yet. Start shopping to see your orders here!
                             </p>
                             <Link
                                 href="/products"
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-primary-content px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                className="inline-flex items-center gap-2 bg-linear-to-r from-primary to-secondary text-primary-content px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg"
                             >
                                 Start Shopping
                             </Link>
@@ -154,7 +154,7 @@ export default function OrdersPage() {
                                     key={filter.value}
                                     onClick={() => setSelectedStatus(filter.value)}
                                     className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${selectedStatus === filter.value
-                                            ? 'bg-gradient-to-r from-primary to-secondary text-primary-content shadow-lg'
+                                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
                                             : 'bg-base-200 text-base-content hover:bg-base-300'
                                         }`}
                                 >
