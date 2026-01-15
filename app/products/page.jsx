@@ -16,11 +16,16 @@ export default function ProductsPage() {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('/api/products')
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
             const data = await response.json()
-            setProducts(data)
+            if (data.success && Array.isArray(data.products)) {
+                setProducts(data.products)
+            } else {
+                setProducts([])
+            }
         } catch (error) {
             console.error('Error fetching products:', error)
+            setProducts([])
         } finally {
             setIsLoading(false)
         }
@@ -93,12 +98,12 @@ export default function ProductsPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredProducts.map((product, index) => (
                         <motion.div
-                            key={product.id}
+                            key={product._id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                         >
-                            <Link href={`/products/${product.id}`}>
+                            <Link href={`/products/${product._id}`}>
                                 <div className="group cursor-pointer h-full">
                                     <div className="card overflow-hidden h-full hover:shadow-2xl transition-all duration-500 bg-base-100 border border-base-content/5">
                                         {/* Product Image */}

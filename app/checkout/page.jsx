@@ -1,4 +1,3 @@
-// app/checkout/page.jsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -8,7 +7,6 @@ import { motion } from 'framer-motion'
 import { CreditCard, MapPin, Package, ArrowLeft, Loader } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { loadStripe } from '@/lib/stripe/config'
 import { getCurrentUser } from '@/lib/firebase/auth'
 import { getDivisions, getDistricts, getCities } from '@/utils/bdLocations'
 import toast from 'react-hot-toast'
@@ -111,6 +109,8 @@ export default function CheckoutPage() {
                 paymentStatus: paymentMethod === 'card' ? 'pending' : 'completed'
             }
 
+            console.log('Creating order with data:', orderData)
+
             const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
                 method: 'POST',
                 headers: {
@@ -120,77 +120,58 @@ export default function CheckoutPage() {
             })
 
             const orderResult = await orderResponse.json()
+            console.log('Order creation result:', orderResult)
 
             if (!orderResult.success) {
-                throw new Error('Failed to create order')
+                throw new Error(orderResult.error || 'Failed to create order')
             }
 
             const orderId = orderResult.order.orderId
 
-            // If payment method is card, process with Stripe
+            // If payment method is card, create Stripe Checkout Session
             if (paymentMethod === 'card') {
-                const stripe = await loadStripe()
+                console.log('Creating Stripe checkout session for order:', orderId)
 
-                // Create payment intent
-                const paymentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/create-intent`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        amount: total,
-                        orderId: orderId,
-                        currency: 'usd'
-                    })
-                })
-
-                const paymentResult = await paymentResponse.json()
-
-                if (!paymentResult.success) {
-                    throw new Error('Failed to create payment intent')
-                }
-
-                // Confirm payment
-                const { error: stripeError } = await stripe.confirmCardPayment(
-                    paymentResult.clientSecret,
-                    {
-                        payment_method: {
-                            card: {
-                                // In production, you'd use Stripe Elements here
-                                // For demo purposes, we'll use a test card
-                            }
-                        }
-                    }
-                )
-
-                if (stripeError) {
-                    throw new Error(stripeError.message)
-                }
-
-                // Save payment confirmation
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/confirm`, {
+                const checkoutResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/create-checkout-session`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         orderId: orderId,
-                        transactionId: paymentResult.transactionId,
-                        amount: total,
-                        paymentMethod: 'Credit Card'
+                        items: cartItems.map(item => ({
+                            name: item.name,
+                            price: item.price,
+                            quantity: item.quantity,
+                            image: item.image
+                        })),
+                        shipping: shipping,
+                        tax: tax,
+                        customerEmail: user.email
                     })
                 })
+
+                const checkoutResult = await checkoutResponse.json()
+                console.log('Checkout session result:', checkoutResult)
+
+                if (!checkoutResult.success) {
+                    throw new Error(checkoutResult.error || 'Failed to create checkout session')
+                }
+
+                // Redirect to Stripe Checkout
+                console.log('Redirecting to Stripe checkout:', checkoutResult.url)
+                window.location.href = checkoutResult.url
+
+            } else {
+                // Cash on Delivery - directly redirect to success
+                clearCart()
+                toast.success('Order placed successfully!')
+                router.push(`/order-success?orderId=${orderId}`)
             }
-
-            // Clear cart and redirect
-            clearCart()
-            toast.success('Order placed successfully!')
-            router.push(`/order-success?orderId=${orderId}`)
 
         } catch (error) {
             console.error('Checkout error:', error)
             toast.error(error.message || 'Failed to process order')
-        } finally {
             setIsProcessing(false)
         }
     }
@@ -205,7 +186,7 @@ export default function CheckoutPage() {
                         <p className="text-base-content/70 mb-6">Add some products to checkout</p>
                         <Link
                             href="/products"
-                            className="inline-flex items-center gap-2 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-primary-content px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                         >
                             Continue Shopping
                         </Link>
@@ -254,7 +235,7 @@ export default function CheckoutPage() {
                                             value={shippingInfo.street}
                                             onChange={handleInputChange}
                                             required
-                                            className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                            className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base-content"
                                             placeholder="House/Flat no., Street name"
                                         />
                                     </div>
@@ -269,7 +250,7 @@ export default function CheckoutPage() {
                                                 value={shippingInfo.division}
                                                 onChange={handleInputChange}
                                                 required
-                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base-content"
                                             >
                                                 <option value="">Select Division</option>
                                                 {divisions.map(div => (
@@ -288,7 +269,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 disabled={!shippingInfo.division}
-                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 text-base-content"
                                             >
                                                 <option value="">Select District</option>
                                                 {districts.map(dist => (
@@ -309,7 +290,7 @@ export default function CheckoutPage() {
                                                 onChange={handleInputChange}
                                                 required
                                                 disabled={!shippingInfo.district}
-                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 text-base-content"
                                             >
                                                 <option value="">Select City</option>
                                                 {cities.map(city => (
@@ -328,7 +309,7 @@ export default function CheckoutPage() {
                                                 value={shippingInfo.zipCode}
                                                 onChange={handleInputChange}
                                                 required
-                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base-content"
                                                 placeholder="1200"
                                             />
                                         </div>
@@ -437,7 +418,7 @@ export default function CheckoutPage() {
                                     <div className="pt-3 border-t border-base-300">
                                         <div className="flex justify-between items-baseline">
                                             <span className="font-semibold text-base-content">Total</span>
-                                            <span className="text-2xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                                                 ${total.toFixed(2)}
                                             </span>
                                         </div>
@@ -447,7 +428,7 @@ export default function CheckoutPage() {
                                 <button
                                     onClick={handleSubmit}
                                     disabled={isProcessing}
-                                    className="w-full mt-6 bg-linear-to-r from-primary to-secondary text-primary-content py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full mt-6 bg-gradient-to-r from-primary to-secondary text-primary-content py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isProcessing ? (
                                         <>

@@ -7,14 +7,12 @@ const orderSchema = new mongoose.Schema({
         unique: true
     },
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
     },
     items: [{
         productId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product'
+            type: String
         },
         name: String,
         price: Number,
@@ -37,7 +35,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['processing', 'shipped', 'delivered', 'cancelled'],
+        enum: ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'],
         default: 'processing'
     },
     subtotal: Number,

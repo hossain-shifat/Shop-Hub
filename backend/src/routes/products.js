@@ -1,49 +1,167 @@
+// backend/src/routes/products.js
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 
-// Get all products
+// Get all products with filters
 router.get('/', async (req, res) => {
     try {
-        const { category, search, minPrice, maxPrice } = req.query;
+        const { category, search, minPrice, maxPrice, sort } = req.query;
         let query = {};
 
-        if (category) query.category = category;
-        if (search) query.name = { $regex: search, $options: 'i' };
+        // Category filter
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+
+        // Search filter
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Price range filter
         if (minPrice || maxPrice) {
             query.price = {};
             if (minPrice) query.price.$gte = parseFloat(minPrice);
             if (maxPrice) query.price.$lte = parseFloat(maxPrice);
         }
 
-        const products = await Product.find(query).sort({ createdAt: -1 });
-        res.status(200).json({ success: true, products });
+        // Build sort object
+        let sortObj = { createdAt: -1 }; // Default: newest first
+        if (sort === 'price-asc') sortObj = { price: 1 };
+        if (sort === 'price-desc') sortObj = { price: -1 };
+        if (sort === 'rating') sortObj = { rating: -1 };
+        if (sort === 'name') sortObj = { name: 1 };
+
+        const products = await Product.find(query).sort(sortObj);
+
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            products
+        });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Get products error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get products'
+        });
     }
 });
 
-// Get single product
+// Get single product by ID
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findOne({ id: req.params.id }).populate('reviews.userId', 'displayName photoURL');
+        const product = await Product.findOne({ id: req.params.id })
+            .populate('reviews.userId', 'displayName photoURL');
+
         if (!product) {
-            return res.status(404).json({ success: false, error: 'Product not found' });
+            return res.status(404).json({
+                success: false,
+                error: 'Product not found'
+            });
         }
+
         res.status(200).json({ success: true, product });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Get product error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get product'
+        });
     }
 });
 
 // Create product (seller only)
 router.post('/', async (req, res) => {
     try {
-        const product = new Product(req.body);
+        const { name, price, category } = req.body;
+
+        // Validate required fields
+        if (!name || !price || !category) {
+            return res.status(400).json({
+                success: false,
+                error: 'Name, price, and category are required'
+            });
+        }
+
+        // Check for duplicate product
+        const existingProduct = await Product.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') },
+            category
+        });
+
+        if (existingProduct) {
+            return res.status(400).json({
+                success: false,
+                error: 'Product with this name already exists in this category'
+            });
+        }
+
+        // Generate unique product ID
+        const productId = `PROD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+        const product = new Product({
+            ...req.body,
+            id: productId,
+            rating: 0,
+            reviews: []
+        });
+
         await product.save();
+
+        console.log('New product created:', productId);
         res.status(201).json({ success: true, product });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Create product error:', error);
+
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                error: 'Product with this information already exists'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to create product'
+        });
+    }
+});
+
+// Update product
+router.patch('/:id', async (req, res) => {
+    try {
+        const product = await Product.findOne({ id: req.params.id });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: 'Product not found'
+            });
+        }
+
+        // Update fields (exclude id and reviews)
+        const allowedUpdates = ['name', 'description', 'price', 'image', 'category', 'stock', 'features', 'specifications'];
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                product[field] = req.body[field];
+            }
+        });
+
+        await product.save();
+
+        console.log('Product updated:', product.id);
+        res.status(200).json({ success: true, product });
+    } catch (error) {
+        console.error('Update product error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to update product'
+        });
     }
 });
 
@@ -51,33 +169,96 @@ router.post('/', async (req, res) => {
 router.post('/:id/reviews', async (req, res) => {
     try {
         const { userId, userName, userPhoto, rating, comment } = req.body;
+
+        // Validate required fields
+        if (!userId || !rating) {
+            return res.status(400).json({
+                success: false,
+                error: 'UserId and rating are required'
+            });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                error: 'Rating must be between 1 and 5'
+            });
+        }
+
         const product = await Product.findOne({ id: req.params.id });
 
         if (!product) {
-            return res.status(404).json({ success: false, error: 'Product not found' });
+            return res.status(404).json({
+                success: false,
+                error: 'Product not found'
+            });
         }
 
+        // Check if user already reviewed (prevent duplicates)
+        const existingReview = product.reviews.find(
+            review => review.userId.toString() === userId.toString()
+        );
+
+        if (existingReview) {
+            return res.status(400).json({
+                success: false,
+                error: 'You have already reviewed this product'
+            });
+        }
+
+        // Add new review
         const review = {
             userId,
-            userName,
-            userPhoto,
-            rating,
-            comment,
+            userName: userName || 'Anonymous',
+            userPhoto: userPhoto || '',
+            rating: Number(rating),
+            comment: comment || '',
             verified: false,
             date: new Date()
         };
 
         product.reviews.push(review);
 
-        // Update average rating
+        // Recalculate average rating
         const totalRating = product.reviews.reduce((sum, r) => sum + r.rating, 0);
         product.rating = totalRating / product.reviews.length;
 
         await product.save();
 
+        console.log('Review added to product:', product.id, 'by user:', userId);
         res.status(200).json({ success: true, product });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Add review error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to add review'
+        });
+    }
+});
+
+// Delete product (admin only)
+router.delete('/:id', async (req, res) => {
+    try {
+        const product = await Product.findOneAndDelete({ id: req.params.id });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: 'Product not found'
+            });
+        }
+
+        console.log('Product deleted:', req.params.id);
+        res.status(200).json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete product error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to delete product'
+        });
     }
 });
 

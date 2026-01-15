@@ -1,3 +1,4 @@
+// app/orders/page.jsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -6,28 +7,57 @@ import { Package, Truck, CheckCircle, XCircle, Eye, MapPin, Calendar, CreditCard
 import Link from 'next/link'
 import Image from 'next/image'
 import Invoice from '@/components/Invoice'
-
+import { getCurrentUser } from '@/lib/firebase/auth'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 export default function OrdersPage() {
+    const router = useRouter()
     const [orders, setOrders] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [selectedStatus, setSelectedStatus] = useState('all')
     const [selectedOrder, setSelectedOrder] = useState(null)
+    const [user, setUser] = useState(null)
 
     useEffect(() => {
-        fetchOrders()
-    }, [])
+        const currentUser = getCurrentUser()
+        if (!currentUser) {
+            toast.error('Please login to view your orders')
+            router.push('/login')
+            return
+        }
+        setUser(currentUser)
+        fetchOrders(currentUser.uid)
+    }, [router])
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (userId) => {
         try {
-            const savedOrders = localStorage.getItem('orders')
-            if (savedOrders) {
-                setOrders(JSON.parse(savedOrders))
+            setIsLoading(true)
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/orders/user/${userId}`
+            )
+            const data = await response.json()
+
+            if (data.success) {
+                // Format orders for display
+                const formattedOrders = data.orders.map(order => ({
+                    ...order,
+                    id: order.orderId,
+                    date: new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    })
+                }))
+                setOrders(formattedOrders)
             } else {
+                toast.error('Failed to load orders')
                 setOrders([])
             }
         } catch (error) {
             console.error('Error fetching orders:', error)
+            toast.error('Failed to load orders')
+            setOrders([])
         } finally {
             setIsLoading(false)
         }
@@ -36,8 +66,9 @@ export default function OrdersPage() {
     const getStatusColor = (status) => {
         switch (status) {
             case 'pending':
-                return 'bg-warning/10 text-warning border-warning/20'
             case 'processing':
+                return 'bg-warning/10 text-warning border-warning/20'
+            case 'confirmed':
                 return 'bg-info/10 text-info border-info/20'
             case 'shipped':
                 return 'bg-primary/10 text-primary border-primary/20'
@@ -53,9 +84,10 @@ export default function OrdersPage() {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'pending':
-                return <Package className="w-5 h-5" />
             case 'processing':
                 return <Package className="w-5 h-5" />
+            case 'confirmed':
+                return <CheckCircle className="w-5 h-5" />
             case 'shipped':
                 return <Truck className="w-5 h-5" />
             case 'delivered':
@@ -79,8 +111,8 @@ export default function OrdersPage() {
 
     const statusFilters = [
         { value: 'all', label: 'All Orders', count: orders.length },
-        { value: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'pending').length },
         { value: 'processing', label: 'Processing', count: orders.filter(o => o.status === 'processing').length },
+        { value: 'confirmed', label: 'Confirmed', count: orders.filter(o => o.status === 'confirmed').length },
         { value: 'shipped', label: 'Shipped', count: orders.filter(o => o.status === 'shipped').length },
         { value: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered').length },
     ]
@@ -132,7 +164,7 @@ export default function OrdersPage() {
                             My Orders
                         </h1>
                         <p className="text-base-content/70">
-                            Track and manage your orders
+                            Track and manage your orders ({orders.length} total)
                         </p>
                     </motion.div>
 
@@ -149,8 +181,8 @@ export default function OrdersPage() {
                                     key={filter.value}
                                     onClick={() => setSelectedStatus(filter.value)}
                                     className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${selectedStatus === filter.value
-                                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
-                                            : 'bg-base-200 text-base-content hover:bg-base-300'
+                                        ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
+                                        : 'bg-base-200 text-base-content hover:bg-base-300'
                                         }`}
                                 >
                                     {filter.label} ({filter.count})
@@ -163,7 +195,7 @@ export default function OrdersPage() {
                     <div className="space-y-6">
                         {filteredOrders.map((order, index) => (
                             <motion.div
-                                key={order.id}
+                                key={order._id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
@@ -174,7 +206,7 @@ export default function OrdersPage() {
                                     <div className="flex flex-wrap items-center gap-4">
                                         <div>
                                             <div className="text-sm text-base-content/60">Order ID</div>
-                                            <div className="font-bold text-base-content">#{order.id}</div>
+                                            <div className="font-bold text-base-content">#{order.orderId}</div>
                                         </div>
                                         <div className="h-8 w-px bg-base-300"></div>
                                         <div>
@@ -192,18 +224,28 @@ export default function OrdersPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 flex-wrap">
                                         <span className={`px-4 py-2 rounded-lg font-semibold border-2 flex items-center gap-2 ${getStatusColor(order.status)}`}>
                                             {getStatusIcon(order.status)}
                                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                         </span>
+                                        {order.paymentStatus === 'completed' && (
+                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-success/10 text-success border border-success/20">
+                                                Paid
+                                            </span>
+                                        )}
+                                        {order.paymentStatus === 'pending' && (
+                                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-warning/10 text-warning border border-warning/20">
+                                                Payment Pending
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Order Items */}
                                 <div className="space-y-4 py-4">
                                     {order.items.map((item) => (
-                                        <div key={item.id} className="flex gap-4 items-center">
+                                        <div key={item._id || item.productId} className="flex gap-4 items-center">
                                             <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-base-300 shrink-0">
                                                 <Image
                                                     src={item.image}
@@ -236,7 +278,8 @@ export default function OrdersPage() {
                                                 <div className="font-semibold text-base-content mb-1">Shipping Address</div>
                                                 <div className="text-sm text-base-content/70">
                                                     {order.shippingAddress.street}<br />
-                                                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}<br />
+                                                    {order.shippingAddress.city}, {order.shippingAddress.district}<br />
+                                                    {order.shippingAddress.division} {order.shippingAddress.zipCode}<br />
                                                     {order.shippingAddress.country}
                                                 </div>
                                             </div>
@@ -262,8 +305,14 @@ export default function OrdersPage() {
                                         <Eye className="w-4 h-4" />
                                         View Invoice
                                     </button>
+                                    <Link
+                                        href={`/orders/${order.orderId}`}
+                                        className="flex items-center gap-2 px-4 py-2 bg-base-100 text-base-content rounded-lg font-semibold hover:bg-base-300 transition-all duration-200 border-2 border-base-300"
+                                    >
+                                        View Details
+                                    </Link>
                                     {order.status === 'delivered' && (
-                                        <button className="flex items-center gap-2 px-4 py-2 bg-base-100 text-base-content rounded-lg font-semibold hover:bg-base-300 transition-all duration-200 border-2 border-base-300">
+                                        <button className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-content rounded-lg font-semibold hover:opacity-90 transition-opacity">
                                             Reorder
                                         </button>
                                     )}

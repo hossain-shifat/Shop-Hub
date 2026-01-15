@@ -10,7 +10,7 @@ import { Heart, Share2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function ProductDetailPage() {
-    const params = useParams()
+    const { id } = useParams()
     const router = useRouter()
     const [product, setProduct] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -20,15 +20,18 @@ export default function ProductDetailPage() {
     const { addToCart, addToWishlist, isInWishlist, removeFromWishlist } = useCart()
 
     useEffect(() => {
+        if (!id) return
         fetchProduct()
-    }, [params.id])
+    }, [id])
+
+    console.log(product)
 
     const fetchProduct = async () => {
         try {
-            const response = await fetch(`/api/products/${params.id}`)
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`)
             if (response.ok) {
                 const data = await response.json()
-                setProduct(data)
+                setProduct(data.product || data)
             } else {
                 router.push('/products')
             }
@@ -138,8 +141,8 @@ export default function ProductDetailPage() {
                                             key={idx}
                                             onClick={() => setSelectedImage(idx)}
                                             className={`relative aspect-square rounded-lg overflow-hidden bg-base-200 transition-all ${selectedImage === idx
-                                                    ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-100'
-                                                    : 'hover:ring-2 hover:ring-base-300'
+                                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-base-100'
+                                                : 'hover:ring-2 hover:ring-base-300'
                                                 }`}
                                         >
                                             <Image src={img} alt={`View ${idx + 1}`} fill className="object-cover" />
@@ -163,12 +166,12 @@ export default function ProductDetailPage() {
                                 </span>
                                 <span
                                     className={`px-4 py-1.5 text-sm font-semibold rounded-full ${product.stock > 50
-                                            ? 'bg-success/10 text-success'
-                                            : product.stock > 20
-                                                ? 'bg-warning/10 text-warning'
-                                                : product.stock > 0
-                                                    ? 'bg-error/10 text-error'
-                                                    : 'bg-neutral/10 text-neutral-content'
+                                        ? 'bg-success/10 text-success'
+                                        : product.stock > 20
+                                            ? 'bg-warning/10 text-warning'
+                                            : product.stock > 0
+                                                ? 'bg-error/10 text-error'
+                                                : 'bg-neutral/10 text-neutral-content'
                                         }`}
                                 >
                                     {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
@@ -186,8 +189,8 @@ export default function ProductDetailPage() {
                                         <svg
                                             key={i}
                                             className={`w-5 h-5 ${i < Math.floor(averageRating)
-                                                    ? 'text-warning fill-current'
-                                                    : 'text-base-300 fill-current'
+                                                ? 'text-warning fill-current'
+                                                : 'text-base-300 fill-current'
                                                 }`}
                                             viewBox="0 0 20 20"
                                         >
@@ -278,8 +281,8 @@ export default function ProductDetailPage() {
                                     <button
                                         onClick={handleWishlistToggle}
                                         className={`${inWishlist
-                                                ? 'bg-error/10 text-error border-error/20'
-                                                : 'bg-base-100 text-base-content border-base-300'
+                                            ? 'bg-error/10 text-error border-error/20'
+                                            : 'bg-base-100 text-base-content border-base-300'
                                             } px-6 py-3 rounded-lg font-semibold hover:bg-base-200 transition-all duration-300 border-2 flex items-center justify-center gap-2`}
                                     >
                                         <Heart className={`w-5 h-5 ${inWishlist ? 'fill-current' : ''}`} />
@@ -326,8 +329,8 @@ export default function ProductDetailPage() {
                                         key={tab}
                                         onClick={() => setSelectedTab(tab)}
                                         className={`px-6 py-3 font-semibold capitalize transition-all whitespace-nowrap ${selectedTab === tab
-                                                ? 'text-primary border-b-2 border-primary'
-                                                : 'text-base-content/60 hover:text-base-content'
+                                            ? 'text-primary border-b-2 border-primary'
+                                            : 'text-base-content/60 hover:text-base-content'
                                             }`}
                                     >
                                         {tab}

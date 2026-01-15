@@ -464,7 +464,7 @@ export default function Invoice({ order }) {
                         <tbody>
                             {order.items.map((item, index) => (
                                 <tr
-                                    key={item.id}
+                                    key={item._id}
                                     style={{
                                         borderBottom: '1px solid #e5e7eb',
                                         backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb'

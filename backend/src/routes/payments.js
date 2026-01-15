@@ -4,54 +4,310 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 
-// Create payment intent
-router.post('/create-intent', async (req, res) => {
+// Create Stripe Checkout Session
+router.post('/create-checkout-session', async (req, res) => {
     try {
-        const { amount, orderId, currency = 'usd' } = req.body;
+        const { orderId, items, shipping, tax, customerEmail } = req.body;
 
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), // Convert to cents
-            currency,
-            metadata: { orderId }
+        // Validate required fields
+        if (!orderId || !items || !customerEmail) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
+
+        // Check if order exists
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'Order not found'
+            });
+        }
+
+        // Check if payment already exists and is completed
+        const existingPayment = await Payment.findOne({
+            orderId,
+            status: 'succeeded'
+        });
+
+        if (existingPayment) {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment already completed for this order'
+            });
+        }
+
+        // Create line items for Stripe
+        const lineItems = items.map(item => ({
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: item.name,
+                    images: item.image ? [item.image] : [],
+                },
+                unit_amount: Math.round(item.price * 100), // Convert to cents
+            },
+            quantity: item.quantity,
+        }));
+
+        // Add shipping as a line item if applicable
+        if (shipping > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Shipping',
+                    },
+                    unit_amount: Math.round(shipping * 100),
+                },
+                quantity: 1,
+            });
+        }
+
+        // Add tax as a line item
+        if (tax > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Tax',
+                    },
+                    unit_amount: Math.round(tax * 100),
+                },
+                quantity: 1,
+            });
+        }
+
+        // Create Checkout Session
+        const session = await stripe.checkout.sessions.create({
+            line_items: lineItems,
+            mode: 'payment',
+            customer_email: customerEmail,
+            client_reference_id: orderId,
+            success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+            cancel_url: `${process.env.FRONTEND_URL}/payment-cancel?order_id=${orderId}`,
         });
 
         res.status(200).json({
             success: true,
-            clientSecret: paymentIntent.client_secret,
-            transactionId: paymentIntent.id
+            sessionId: session.id,
+            url: session.url
         });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Stripe Checkout Session Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to create checkout session'
+        });
     }
 });
 
-// Confirm payment
-router.post('/confirm', async (req, res) => {
+// Verify Payment Success (called from success page)
+router.post('/verify-session', async (req, res) => {
     try {
-        const { orderId, transactionId, amount, paymentMethod } = req.body;
+        const { sessionId, orderId } = req.body;
 
-        // Save payment record
-        const payment = new Payment({
+        // Validate required fields
+        if (!sessionId || !orderId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing sessionId or orderId'
+            });
+        }
+
+        console.log('Verifying payment for session:', sessionId, 'order:', orderId);
+
+        // Retrieve Stripe session
+        let session;
+        try {
+            session = await stripe.checkout.sessions.retrieve(sessionId);
+            console.log('Stripe session retrieved:', session.id, 'Payment status:', session.payment_status);
+        } catch (err) {
+            console.error('Stripe session retrieve error:', err);
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid Stripe session ID'
+            });
+        }
+
+        // Check if payment was completed
+        if (session.payment_status !== 'paid') {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment not completed'
+            });
+        }
+
+        // Find the order
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'Order not found'
+            });
+        }
+
+        // Check if payment already exists (prevent duplicates)
+        let payment = await Payment.findOne({ orderId });
+
+        if (payment) {
+            // Payment already exists, just return the existing data
+            console.log('Payment already exists for order:', orderId);
+
+            // Update order if needed
+            if (order.paymentStatus !== 'completed') {
+                order.paymentStatus = 'completed';
+                order.status = 'confirmed';
+                await order.save();
+            }
+
+            return res.status(200).json({
+                success: true,
+                payment,
+                order,
+                message: 'Payment already verified'
+            });
+        }
+
+        // Create new payment record
+        payment = new Payment({
             orderId,
-            transactionId,
-            amount,
+            transactionId: session.payment_intent,
+            amount: session.amount_total / 100,
             status: 'succeeded',
-            paymentMethod,
-            currency: 'usd'
+            paymentMethod: 'Credit Card',
+            currency: session.currency || 'usd'
         });
         await payment.save();
 
-        // Update order
-        const order = await Order.findOne({ orderId });
-        if (order) {
-            order.paymentStatus = 'completed';
-            order.transactionId = transactionId;
-            await order.save();
+        // Update order status
+        order.paymentStatus = 'completed';
+        order.status = 'confirmed';
+        await order.save();
+
+        console.log('Payment verified successfully for order:', orderId);
+
+        res.status(200).json({
+            success: true,
+            payment,
+            order
+        });
+    } catch (error) {
+        console.error('Payment Verification Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to verify payment'
+        });
+    }
+});
+
+// Handle payment cancellation
+router.post('/cancel-payment', async (req, res) => {
+    try {
+        const { orderId } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing orderId'
+            });
         }
 
-        res.status(200).json({ success: true, payment });
+        // Find and update order status
+        const order = await Order.findOne({ orderId });
+        if (order) {
+            // Only update if not already completed
+            if (order.paymentStatus !== 'completed') {
+                order.paymentStatus = 'cancelled';
+                order.status = 'cancelled';
+                await order.save();
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Payment cancelled',
+            order
+        });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Payment Cancellation Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to cancel payment'
+        });
+    }
+});
+
+// Stripe Webhook (for production use)
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(
+            req.body,
+            sig,
+            process.env.STRIPE_WEBHOOK_SECRET
+        );
+    } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    try {
+        switch (event.type) {
+            case 'checkout.session.completed':
+                const session = event.data.object;
+                const orderId = session.client_reference_id;
+
+                if (!orderId) {
+                    console.error('No orderId in webhook session');
+                    break;
+                }
+
+                // Check if payment already exists (prevent duplicates)
+                let payment = await Payment.findOne({ orderId });
+
+                if (!payment) {
+                    // Create payment record
+                    payment = new Payment({
+                        orderId,
+                        transactionId: session.payment_intent,
+                        amount: session.amount_total / 100,
+                        status: 'succeeded',
+                        paymentMethod: 'Credit Card',
+                        currency: session.currency || 'usd'
+                    });
+                    await payment.save();
+                }
+
+                // Update order
+                const order = await Order.findOne({ orderId });
+                if (order && order.paymentStatus !== 'completed') {
+                    order.paymentStatus = 'completed';
+                    order.status = 'confirmed';
+                    await order.save();
+                }
+                break;
+
+            case 'payment_intent.payment_failed':
+                // Handle payment failure
+                const failedIntent = event.data.object;
+                console.log('Payment failed:', failedIntent.id);
+                break;
+
+            default:
+                console.log(`Unhandled event type ${event.type}`);
+        }
+
+        res.json({ received: true });
+    } catch (error) {
+        console.error('Webhook processing error:', error);
+        res.status(500).json({ error: 'Webhook processing failed' });
     }
 });
 
@@ -60,11 +316,18 @@ router.get('/order/:orderId', async (req, res) => {
     try {
         const payment = await Payment.findOne({ orderId: req.params.orderId });
         if (!payment) {
-            return res.status(404).json({ success: false, error: 'Payment not found' });
+            return res.status(404).json({
+                success: false,
+                error: 'Payment not found'
+            });
         }
         res.status(200).json({ success: true, payment });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Get payment error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get payment'
+        });
     }
 });
 
