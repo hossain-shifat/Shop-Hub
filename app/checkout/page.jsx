@@ -1,598 +1,402 @@
+// app/checkout/page.jsx
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreditCard, Truck, MapPin, Lock, Check, ArrowLeft } from 'lucide-react'
+import { useCart } from '@/contexts/CartContext'
+import { motion } from 'framer-motion'
+import { CreditCard, MapPin, Package, ArrowLeft, Loader } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCart } from '@/contexts/CartContext'
+import { loadStripe } from '@/lib/stripe/config'
+import { getCurrentUser } from '@/lib/firebase/auth'
+import { getDivisions, getDistricts, getCities } from '@/utils/bdLocations'
+import toast from 'react-hot-toast'
 
 export default function CheckoutPage() {
     const router = useRouter()
     const { cartItems, getCartTotal, clearCart } = useCart()
-    const [currentStep, setCurrentStep] = useState(1)
+    const [user, setUser] = useState(null)
     const [isProcessing, setIsProcessing] = useState(false)
 
     const [shippingInfo, setShippingInfo] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        address: '',
+        street: '',
+        division: '',
+        district: '',
         city: '',
-        state: '',
         zipCode: '',
-        country: 'United States'
+        country: 'Bangladesh'
     })
 
-    const [paymentInfo, setPaymentInfo] = useState({
-        cardNumber: '',
-        cardName: '',
-        expiryDate: '',
-        cvv: '',
-        saveCard: false
-    })
+    const [divisions] = useState(getDivisions())
+    const [districts, setDistricts] = useState([])
+    const [cities, setCities] = useState([])
+
+    const [paymentMethod, setPaymentMethod] = useState('card')
+
+    useEffect(() => {
+        const currentUser = getCurrentUser()
+        if (!currentUser) {
+            toast.error('Please login to continue')
+            router.push('/login')
+            return
+        }
+        setUser(currentUser)
+    }, [router])
+
+    useEffect(() => {
+        if (shippingInfo.division) {
+            setDistricts(getDistricts(shippingInfo.division))
+            setShippingInfo(prev => ({ ...prev, district: '', city: '' }))
+        }
+    }, [shippingInfo.division])
+
+    useEffect(() => {
+        if (shippingInfo.division && shippingInfo.district) {
+            setCities(getCities(shippingInfo.division, shippingInfo.district))
+            setShippingInfo(prev => ({ ...prev, city: '' }))
+        }
+    }, [shippingInfo.district])
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setShippingInfo(prev => ({ ...prev, [name]: value }))
+    }
 
     const subtotal = getCartTotal()
     const shipping = subtotal > 100 ? 0 : 10
     const tax = subtotal * 0.1
     const total = subtotal + shipping + tax
 
-    const handleShippingChange = (e) => {
-        setShippingInfo({
-            ...shippingInfo,
-            [e.target.name]: e.target.value
-        })
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault()
 
-    const handlePaymentChange = (e) => {
-        const { name, value, type, checked } = e.target
-
-        if (name === 'cardNumber') {
-            const formattedValue = value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim();
-            setPaymentInfo({ ...paymentInfo, [name]: formattedValue });
-        } else if (name === 'expiryDate') {
-            // Format expiry date MM/YY
-            const formattedValue = value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5)
-            setPaymentInfo({ ...paymentInfo, [name]: formattedValue })
-        } else if (name === 'cvv') {
-            // Only allow numbers and max 4 digits
-            const formattedValue = value.replace(/\D/g, '').slice(0, 4)
-            setPaymentInfo({ ...paymentInfo, [name]: formattedValue })
-        } else {
-            setPaymentInfo({
-                ...paymentInfo,
-                [name]: type === 'checkbox' ? checked : value
-            })
+        if (!user) {
+            toast.error('Please login to continue')
+            return
         }
-    }
 
-    const validateShipping = () => {
-        const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode']
-        return required.every(field => shippingInfo[field].trim() !== '')
-    }
-
-    const validatePayment = () => {
-        const cardNumberDigits = paymentInfo.cardNumber.replace(/\s/g, '');
-        return (
-            cardNumberDigits.length >= 16 &&
-            paymentInfo.cardName.trim() !== '' &&
-            paymentInfo.expiryDate.length === 5 &&
-            paymentInfo.cvv.length >= 3
-        )
-    }
-
-    const handleContinue = () => {
-        if (currentStep === 1 && validateShipping()) {
-            setCurrentStep(2)
-        } else if (currentStep === 2 && validatePayment()) {
-            setCurrentStep(3)
+        if (cartItems.length === 0) {
+            toast.error('Your cart is empty')
+            return
         }
-    }
 
-    const handlePlaceOrder = async () => {
-        if (!validateShipping() || !validatePayment()) {
-            alert('Please fill in all required fields')
+        // Validate shipping info
+        if (!shippingInfo.street || !shippingInfo.division || !shippingInfo.district ||
+            !shippingInfo.city || !shippingInfo.zipCode) {
+            toast.error('Please fill in all shipping details')
             return
         }
 
         setIsProcessing(true)
 
-        // Simulate order processing
-        setTimeout(() => {
-            // Create order object
-            const order = {
-                id: `ORD${Date.now()}`,
-                date: new Date().toLocaleDateString(),
-                status: 'processing',
-                total: total,
+        try {
+            // Create order in database first
+            const orderData = {
+                userId: user.uid,
                 items: cartItems.map(item => ({
-                    id: item.id,
+                    productId: item.id,
                     name: item.name,
                     price: item.price,
                     quantity: item.quantity,
                     image: item.image
                 })),
-                shippingAddress: {
-                    street: shippingInfo.address,
-                    city: shippingInfo.city,
-                    state: shippingInfo.state,
-                    zipCode: shippingInfo.zipCode,
-                    country: shippingInfo.country
-                },
-                paymentMethod: `**** **** **** ${paymentInfo.cardNumber.slice(-4)}`
+                shippingAddress: shippingInfo,
+                paymentMethod: paymentMethod === 'card' ? 'Credit Card' : 'Cash on Delivery',
+                subtotal,
+                shipping,
+                tax,
+                total,
+                status: 'processing',
+                paymentStatus: paymentMethod === 'card' ? 'pending' : 'completed'
             }
 
-            // Save order to localStorage (replace with API call)
-            const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-            localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]))
+            const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+            })
 
-            // Clear cart
+            const orderResult = await orderResponse.json()
+
+            if (!orderResult.success) {
+                throw new Error('Failed to create order')
+            }
+
+            const orderId = orderResult.order.orderId
+
+            // If payment method is card, process with Stripe
+            if (paymentMethod === 'card') {
+                const stripe = await loadStripe()
+
+                // Create payment intent
+                const paymentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/create-intent`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: total,
+                        orderId: orderId,
+                        currency: 'usd'
+                    })
+                })
+
+                const paymentResult = await paymentResponse.json()
+
+                if (!paymentResult.success) {
+                    throw new Error('Failed to create payment intent')
+                }
+
+                // Confirm payment
+                const { error: stripeError } = await stripe.confirmCardPayment(
+                    paymentResult.clientSecret,
+                    {
+                        payment_method: {
+                            card: {
+                                // In production, you'd use Stripe Elements here
+                                // For demo purposes, we'll use a test card
+                            }
+                        }
+                    }
+                )
+
+                if (stripeError) {
+                    throw new Error(stripeError.message)
+                }
+
+                // Save payment confirmation
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        transactionId: paymentResult.transactionId,
+                        amount: total,
+                        paymentMethod: 'Credit Card'
+                    })
+                })
+            }
+
+            // Clear cart and redirect
             clearCart()
+            toast.success('Order placed successfully!')
+            router.push(`/order-success?orderId=${orderId}`)
 
-            // Redirect to success page
-            router.push(`/order-success?orderId=${order.id}`)
-        }, 2000)
+        } catch (error) {
+            console.error('Checkout error:', error)
+            toast.error(error.message || 'Failed to process order')
+        } finally {
+            setIsProcessing(false)
+        }
     }
 
-    const steps = [
-        { number: 1, title: 'Shipping', icon: Truck },
-        { number: 2, title: 'Payment', icon: CreditCard },
-        { number: 3, title: 'Review', icon: Check }
-    ]
-
-    const fadeInUp = {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5 }
-    }
-
-    if ((!cartItems || cartItems.length === 0) && !isProcessing) {
-        router.push('/cart')
-        return null
+    if (cartItems.length === 0) {
+        return (
+            <div className="min-h-screen pt-32">
+                <div className="section-padding">
+                    <div className="container-custom max-w-md mx-auto text-center">
+                        <Package className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-base-content mb-2">Your cart is empty</h2>
+                        <p className="text-base-content/70 mb-6">Add some products to checkout</p>
+                        <Link
+                            href="/products"
+                            className="inline-flex items-center gap-2 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                        >
+                            Continue Shopping
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
         <div className="min-h-screen pt-32">
             <div className="section-padding">
                 <div className="container-custom max-w-6xl">
-                    {/* Header */}
-                    <motion.div {...fadeInUp} className="mb-8">
-                        <Link
-                            href="/cart"
-                            className="inline-flex items-center gap-2 text-base-content/70 hover:text-primary transition-colors mb-4"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Back to Cart
-                        </Link>
-                        <h1 className="text-4xl md:text-5xl font-bold text-base-content mb-2">
-                            Checkout
-                        </h1>
-                        <p className="text-base-content/70">
-                            Complete your order in just a few steps
-                        </p>
-                    </motion.div>
-
-                    {/* Progress Steps */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="mb-8"
+                    <Link
+                        href="/cart"
+                        className="inline-flex items-center gap-2 text-base-content/70 hover:text-primary transition-colors mb-6"
                     >
-                        <div className="flex items-center justify-between max-w-2xl mx-auto">
-                            {steps.map((step, index) => (
-                                <div key={step.number} className="flex items-center flex-1">
-                                    <div className="flex flex-col items-center">
-                                        <div
-                                            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep >= step.number
-                                                ? 'bg-linear-to-r from-primary to-secondary text-primary-content'
-                                                : 'bg-base-300 text-base-content/50'
-                                                }`}
-                                        >
-                                            {currentStep > step.number ? (
-                                                <Check className="w-6 h-6" />
-                                            ) : (
-                                                <step.icon className="w-5 h-5" />
-                                            )}
-                                        </div>
-                                        <span className={`text-sm font-semibold mt-2 ${currentStep >= step.number ? 'text-base-content' : 'text-base-content/50'
-                                            }`}>
-                                            {step.title}
-                                        </span>
-                                    </div>
-                                    {index < steps.length - 1 && (
-                                        <div className={`flex-1 h-1 mx-4 transition-all duration-300 ${currentStep > step.number
-                                            ? 'bg-linear-to-r from-primary to-secondary'
-                                            : 'bg-base-300'
-                                            }`} />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Cart
+                    </Link>
+
+                    <h1 className="text-4xl font-bold text-base-content mb-8">Checkout</h1>
 
                     <div className="grid lg:grid-cols-3 gap-8">
-                        {/* Main Content */}
+                        {/* Checkout Form */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Step 1: Shipping Information */}
-                            {currentStep === 1 && (
-                                <motion.div
-                                    key="shipping"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="card bg-base-200"
-                                >
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
-                                            <MapPin className="w-5 h-5 text-white" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-base-content">Shipping Information</h2>
+                            {/* Shipping Information */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="card"
+                            >
+                                <div className="flex items-center gap-3 mb-6">
+                                    <MapPin className="w-6 h-6 text-primary" />
+                                    <h2 className="text-2xl font-bold text-base-content">Shipping Address</h2>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-base-content mb-2">
+                                            Street Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="street"
+                                            value={shippingInfo.street}
+                                            onChange={handleInputChange}
+                                            required
+                                            className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                            placeholder="House/Flat no., Street name"
+                                        />
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    First Name *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="firstName"
-                                                    value={shippingInfo.firstName}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    Last Name *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="lastName"
-                                                    value={shippingInfo.lastName}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    Email Address *
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={shippingInfo.email}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    Phone Number *
-                                                </label>
-                                                <input
-                                                    type="tel"
-                                                    name="phone"
-                                                    value={shippingInfo.phone}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
+                                    <div className="grid md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-base-content mb-2">
-                                                Street Address *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="address"
-                                                value={shippingInfo.address}
-                                                onChange={handleShippingChange}
-                                                className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="grid md:grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    City *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="city"
-                                                    value={shippingInfo.city}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    State *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="state"
-                                                    value={shippingInfo.state}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    Zip Code *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="zipCode"
-                                                    value={shippingInfo.zipCode}
-                                                    onChange={handleShippingChange}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-semibold text-base-content mb-2">
-                                                Country *
+                                                Division
                                             </label>
                                             <select
-                                                name="country"
-                                                value={shippingInfo.country}
-                                                onChange={handleShippingChange}
-                                                className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
+                                                name="division"
+                                                value={shippingInfo.division}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                             >
-                                                <option>United States</option>
-                                                <option>Canada</option>
-                                                <option>United Kingdom</option>
-                                                <option>Australia</option>
+                                                <option value="">Select Division</option>
+                                                {divisions.map(div => (
+                                                    <option key={div} value={div}>{div}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-base-content mb-2">
+                                                District
+                                            </label>
+                                            <select
+                                                name="district"
+                                                value={shippingInfo.district}
+                                                onChange={handleInputChange}
+                                                required
+                                                disabled={!shippingInfo.division}
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                            >
+                                                <option value="">Select District</option>
+                                                {districts.map(dist => (
+                                                    <option key={dist} value={dist}>{dist}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={handleContinue}
-                                        disabled={!validateShipping()}
-                                        className="w-full mt-6 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Continue to Payment
-                                    </button>
-                                </motion.div>
-                            )}
-
-                            {/* Step 2: Payment Information */}
-                            {currentStep === 2 && (
-                                <motion.div
-                                    key="payment"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="card bg-base-200"
-                                >
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
-                                            <CreditCard className="w-5 h-5 text-white" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-base-content">Payment Information</h2>
-                                    </div>
-
-                                    <div className="space-y-4">
+                                    <div className="grid md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-semibold text-base-content mb-2">
-                                                Card Number *
+                                                City/Area
                                             </label>
-                                            <input
-                                                type="text"
-                                                name="cardNumber"
-                                                value={paymentInfo.cardNumber}
-                                                onChange={handlePaymentChange}
-                                                placeholder="1234 5678 9012 3456"
-                                                maxLength={19}
-                                                className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
+                                            <select
+                                                name="city"
+                                                value={shippingInfo.city}
+                                                onChange={handleInputChange}
                                                 required
-                                            />
+                                                disabled={!shippingInfo.district}
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                                            >
+                                                <option value="">Select City</option>
+                                                {cities.map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-semibold text-base-content mb-2">
-                                                Cardholder Name *
+                                                Zip Code
                                             </label>
                                             <input
                                                 type="text"
-                                                name="cardName"
-                                                value={paymentInfo.cardName}
-                                                onChange={handlePaymentChange}
-                                                placeholder="Card Holder Name"
-                                                className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
+                                                name="zipCode"
+                                                value={shippingInfo.zipCode}
+                                                onChange={handleInputChange}
                                                 required
+                                                className="w-full px-4 py-3 bg-base-200 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                                placeholder="1200"
                                             />
                                         </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    Expiry Date *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="expiryDate"
-                                                    value={paymentInfo.expiryDate}
-                                                    onChange={handlePaymentChange}
-                                                    placeholder="MM/YY"
-                                                    maxLength={5}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-semibold text-base-content mb-2">
-                                                    CVV *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="cvv"
-                                                    value={paymentInfo.cvv}
-                                                    onChange={handlePaymentChange}
-                                                    placeholder="123"
-                                                    maxLength={4}
-                                                    className="w-full px-4 py-3 rounded-lg bg-base-100 border border-base-300 text-base-content focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                name="saveCard"
-                                                checked={paymentInfo.saveCard}
-                                                onChange={handlePaymentChange}
-                                                className="w-5 h-5 rounded border-base-300 text-primary focus:ring-2 focus:ring-primary"
-                                            />
-                                            <label className="text-sm text-base-content">
-                                                Save card for future purchases
-                                            </label>
-                                        </div>
-
-                                        <div className="bg-info/10 border border-info/20 rounded-lg p-4 flex items-start gap-3">
-                                            <Lock className="w-5 h-5 text-info shrink-0 mt-0.5" />
-                                            <div className="text-sm text-base-content/80">
-                                                Your payment information is encrypted and secure. We never store your full card details.
-                                            </div>
-                                        </div>
                                     </div>
+                                </form>
+                            </motion.div>
 
-                                    <div className="flex gap-3 mt-6">
-                                        <button
-                                            onClick={() => setCurrentStep(1)}
-                                            className="flex-1 bg-base-100 text-base-content px-6 py-4 rounded-lg font-semibold hover:bg-base-300 transition-all duration-300 border-2 border-base-300"
-                                        >
-                                            Back
-                                        </button>
-                                        <button
-                                            onClick={handleContinue}
-                                            disabled={!validatePayment()}
-                                            className="flex-1 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Review Order
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
+                            {/* Payment Method */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="card"
+                            >
+                                <div className="flex items-center gap-3 mb-6">
+                                    <CreditCard className="w-6 h-6 text-primary" />
+                                    <h2 className="text-2xl font-bold text-base-content">Payment Method</h2>
+                                </div>
 
-                            {/* Step 3: Review Order */}
-                            {currentStep === 3 && (
-                                <motion.div
-                                    key="review"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="space-y-6"
-                                >
-                                    {/* Shipping Address */}
-                                    <div className="card bg-base-200">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-xl font-bold text-base-content">Shipping Address</h3>
-                                            <button
-                                                onClick={() => setCurrentStep(1)}
-                                                className="text-primary hover:text-primary/80 font-semibold text-sm"
-                                            >
-                                                Edit
-                                            </button>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-3 p-4 bg-base-200 rounded-lg cursor-pointer hover:bg-base-300 transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="card"
+                                            checked={paymentMethod === 'card'}
+                                            onChange={(e) => setPaymentMethod(e.target.value)}
+                                            className="radio radio-primary"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-base-content">Credit/Debit Card</div>
+                                            <div className="text-sm text-base-content/60">Pay securely with Stripe</div>
                                         </div>
-                                        <div className="text-base-content/70">
-                                            <p>{shippingInfo.firstName} {shippingInfo.lastName}</p>
-                                            <p>{shippingInfo.address}</p>
-                                            <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
-                                            <p>{shippingInfo.country}</p>
-                                            <p className="mt-2">{shippingInfo.email}</p>
-                                            <p>{shippingInfo.phone}</p>
-                                        </div>
-                                    </div>
+                                        <CreditCard className="w-5 h-5 text-primary" />
+                                    </label>
 
-                                    {/* Payment Method */}
-                                    <div className="card bg-base-200">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-xl font-bold text-base-content">Payment Method</h3>
-                                            <button
-                                                onClick={() => setCurrentStep(2)}
-                                                className="text-primary hover:text-primary/80 font-semibold text-sm"
-                                            >
-                                                Edit
-                                            </button>
+                                    <label className="flex items-center gap-3 p-4 bg-base-200 rounded-lg cursor-pointer hover:bg-base-300 transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="cod"
+                                            checked={paymentMethod === 'cod'}
+                                            onChange={(e) => setPaymentMethod(e.target.value)}
+                                            className="radio radio-primary"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold text-base-content">Cash on Delivery</div>
+                                            <div className="text-sm text-base-content/60">Pay when you receive</div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <CreditCard className="w-8 h-8 text-primary" />
-                                            <div>
-                                                <p className="font-semibold text-base-content">
-                                                    **** **** **** {paymentInfo.cardNumber.slice(-4)}
-                                                </p>
-                                                <p className="text-sm text-base-content/60">
-                                                    Expires {paymentInfo.expiryDate}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => setCurrentStep(2)}
-                                            className="flex-1 bg-base-100 text-base-content px-6 py-4 rounded-lg font-semibold hover:bg-base-300 transition-all duration-300 border-2 border-base-300"
-                                        >
-                                            Back
-                                        </button>
-                                        <button
-                                            onClick={handlePlaceOrder}
-                                            disabled={isProcessing}
-                                            className="flex-1 bg-linear-to-r from-primary to-secondary text-primary-content px-6 py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {isProcessing ? (
-                                                <>
-                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    Processing...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Lock className="w-5 h-5" />
-                                                    Place Order
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
+                                    </label>
+                                </div>
+                            </motion.div>
                         </div>
 
-                        {/* Order Summary Sidebar */}
+                        {/* Order Summary */}
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
                             className="lg:col-span-1"
                         >
-                            <div className="card bg-base-200 sticky top-24">
+                            <div className="card sticky top-24">
                                 <h2 className="text-2xl font-bold text-base-content mb-6">Order Summary</h2>
 
-                                {/* Cart Items */}
                                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                                    {cartItems.map((item) => (
+                                    {cartItems.map(item => (
                                         <div key={item.id} className="flex gap-3">
-                                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-base-300 shrink-0">
+                                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-base-200">
                                                 <Image
                                                     src={item.image}
                                                     alt={item.name}
@@ -600,56 +404,63 @@ export default function CheckoutPage() {
                                                     className="object-cover"
                                                 />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-semibold text-base-content text-sm truncate">
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-sm text-base-content line-clamp-1">
                                                     {item.name}
-                                                </h4>
-                                                <p className="text-xs text-base-content/60">
+                                                </h3>
+                                                <p className="text-sm text-base-content/60">
                                                     Qty: {item.quantity}
                                                 </p>
-                                                <p className="text-sm font-bold text-primary">
-                                                    ${(item.price * item.quantity).toFixed(2)}
-                                                </p>
+                                            </div>
+                                            <div className="font-bold text-base-content">
+                                                ${(item.price * item.quantity).toFixed(2)}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Price Breakdown */}
-                                <div className="space-y-3 pt-6 border-t border-base-300">
+                                <div className="space-y-3 pt-4 border-t border-base-300">
                                     <div className="flex justify-between text-base-content/70">
                                         <span>Subtotal</span>
                                         <span className="font-semibold">${subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-base-content/70">
                                         <span>Shipping</span>
-                                        <span className="font-semibold">
-                                            {shipping === 0 ? (
-                                                <span className="text-success">Free</span>
-                                            ) : (
-                                                `$${shipping.toFixed(2)}`
-                                            )}
+                                        <span className="font-semibold text-success">
+                                            {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-base-content/70">
                                         <span>Tax</span>
                                         <span className="font-semibold">${tax.toFixed(2)}</span>
                                     </div>
-                                    <div className="border-t border-base-300 pt-3">
+                                    <div className="pt-3 border-t border-base-300">
                                         <div className="flex justify-between items-baseline">
-                                            <span className="text-lg font-semibold text-base-content">Total</span>
-                                            <span className="text-3xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                            <span className="font-semibold text-base-content">Total</span>
+                                            <span className="text-2xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
                                                 ${total.toFixed(2)}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Security Badge */}
-                                <div className="mt-6 pt-6 border-t border-base-300 flex items-center gap-3 text-sm text-base-content/60">
-                                    <Lock className="w-5 h-5" />
-                                    <span>Secure SSL Encrypted Payment</span>
-                                </div>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isProcessing}
+                                    className="w-full mt-6 bg-linear-to-r from-primary to-secondary text-primary-content py-4 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader className="w-5 h-5 animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard className="w-5 h-5" />
+                                            Place Order
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </motion.div>
                     </div>
