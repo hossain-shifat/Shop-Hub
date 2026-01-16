@@ -400,7 +400,7 @@ export default function HomePage() {
                             >
                                 <Link href={`/products?category=${category.name}`} className="group block">
                                     <div className="card h-full hover:scale-105 transition-all duration-300 hover:shadow-xl text-center">
-                                        <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-300`}>
+                                        <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-linear-to-br ${category.color} flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-300`}>
                                             {category.icon}
                                         </div>
                                         <h3 className="text-xl font-bold mb-2 text-base-content group-hover:text-primary transition-colors">
@@ -460,7 +460,7 @@ export default function HomePage() {
                                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                                 className="text-center"
                             >
-                                <div className={`inline-flex p-5 rounded-2xl bg-gradient-to-br ${badge.color} text-white mb-4 shadow-lg`}>
+                                <div className={`inline-flex p-5 rounded-2xl bg-linear-to-br ${badge.color} text-white mb-4 shadow-lg`}>
                                     {badge.icon}
                                 </div>
                                 <h3 className="text-xl font-bold mb-2 text-base-content">{badge.title}</h3>
@@ -471,7 +471,7 @@ export default function HomePage() {
 
                     <motion.div
                         {...fadeInUp}
-                        className="mt-16 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border-2 border-primary/20"
+                        className="mt-16 bg-linear-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border-2 border-primary/20"
                     >
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="text-center md:text-left">
@@ -551,18 +551,312 @@ export default function HomePage() {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.15, duration: 0.5 }}
-                                className="card bg-gradient-to-br from-primary/5 to-secondary/5 text-center"
+                                className="card bg-linear-to-br from-primary/5 to-secondary/5 text-center"
                             >
-                                <div className="inline-flex p-3 bg-gradient-to-br from-primary to-secondary rounded-xl text-primary-content mb-4 mx-auto">
+                                <div className="inline-flex p-3 bg-linear-to-br from-primary to-secondary rounded-xl text-primary-content mb-4 mx-auto">
                                     {item.icon}
                                 </div>
-                                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+                                <div className="text-4xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
                                     {item.stat}
                                 </div>
                                 <div className="text-base-content/70 font-medium">{item.label}</div>
                             </motion.div>
                         ))}
                     </motion.div>
+                </div>
+            </section>
+            {/* Section 10: How It Works */}
+            <section className="section-padding bg-base-200">
+                <div className="container-custom">
+                    <motion.div {...fadeInUp} className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">How It Works</h2>
+                        <p className="text-base-content/70 text-lg max-w-2xl mx-auto">
+                            Your journey to amazing products in just four simple steps
+                        </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-4 gap-8 relative">
+                        {/* Connection Line */}
+                        <div className="hidden md:block absolute top-24 left-0 right-0 h-1 bg-linear-to-r from-primary via-secondary to-accent opacity-20 z-0"></div>
+
+                        {[
+                            {
+                                step: '01',
+                                icon: '🔍',
+                                title: 'Browse & Discover',
+                                description: 'Explore our curated collection of premium products across multiple categories',
+                                color: 'from-blue-500 to-cyan-500'
+                            },
+                            {
+                                step: '02',
+                                icon: '🛒',
+                                title: 'Add to Cart',
+                                description: 'Select your favorite items and add them to your shopping cart with one click',
+                                color: 'from-purple-500 to-pink-500'
+                            },
+                            {
+                                step: '03',
+                                icon: '💳',
+                                title: 'Secure Checkout',
+                                description: 'Complete your purchase with our secure payment gateway and multiple payment options',
+                                color: 'from-orange-500 to-red-500'
+                            },
+                            {
+                                step: '04',
+                                icon: '📦',
+                                title: 'Fast Delivery',
+                                description: 'Receive your order within 24-48 hours with real-time tracking',
+                                color: 'from-green-500 to-emerald-500'
+                            }
+                        ].map((item, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.15, duration: 0.5 }}
+                                className="relative z-10"
+                            >
+                                <div className="card text-center hover:scale-105 transition-all duration-300 hover:shadow-xl">
+                                    <div className={`w-20 h-20 mx-auto mb-4 rounded-full bg-linear-to-br ${item.color} flex items-center justify-center text-4xl shadow-lg relative`}>
+                                        {item.icon}
+                                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-base-100 rounded-full flex items-center justify-center text-xs font-bold text-base-content border-2 border-base-300">
+                                            {item.step}
+                                        </div>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3 text-base-content">{item.title}</h3>
+                                    <p className="text-base-content/70 text-sm leading-relaxed">{item.description}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <motion.div
+                        {...fadeInUp}
+                        className="mt-12 text-center"
+                    >
+                        <Link
+                            href="/products"
+                            className="btn-primary inline-flex items-center gap-2"
+                        >
+                            Start Shopping Now
+                            <ShoppingBag className="w-5 h-5" />
+                        </Link>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Section 11: Special Offers */}
+            <section className="section-padding bg-base-100">
+                <div className="container-custom">
+                    <motion.div {...fadeInUp} className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">Limited Time Offers</h2>
+                        <p className="text-base-content/70 text-lg max-w-2xl mx-auto">
+                            Don&apos;t miss out on these exclusive deals and special promotions
+                        </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {/* Big Deal Card */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="card bg-linear-to-br from-primary to-secondary text-primary-content p-8 relative overflow-hidden hover:scale-105 transition-all duration-300"
+                        >
+                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+
+                            <div className="relative z-10">
+                                <div className="inline-block bg-warning text-warning-content px-4 py-2 rounded-full text-sm font-bold mb-4">
+                                    🔥 HOT DEAL
+                                </div>
+                                <h3 className="text-3xl md:text-4xl font-bold mb-4">
+                                    Weekend Special
+                                </h3>
+                                <p className="text-xl mb-6 text-primary-content/90">
+                                    Up to 40% OFF on selected electronics
+                                </p>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="text-center">
+                                        <div className="text-3xl font-bold">23</div>
+                                        <div className="text-sm opacity-80">Hours</div>
+                                    </div>
+                                    <div className="text-2xl">:</div>
+                                    <div className="text-center">
+                                        <div className="text-3xl font-bold">45</div>
+                                        <div className="text-sm opacity-80">Minutes</div>
+                                    </div>
+                                    <div className="text-2xl">:</div>
+                                    <div className="text-center">
+                                        <div className="text-3xl font-bold">12</div>
+                                        <div className="text-sm opacity-80">Seconds</div>
+                                    </div>
+                                </div>
+                                <Link
+                                    href="/products"
+                                    className="inline-flex items-center gap-2 bg-base-100 text-base-content px-6 py-3 rounded-lg font-semibold hover:shadow-xl transition-all"
+                                >
+                                    Shop Now
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </Link>
+                            </div>
+                        </motion.div>
+
+                        {/* Two Smaller Offers */}
+                        <div className="grid gap-8">
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6 }}
+                                className="card bg-linear-to-br from-success/20 to-success/5 border-2 border-success/30 hover:scale-105 transition-all duration-300"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-success rounded-2xl flex items-center justify-center text-3xl">
+                                        🎁
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-base-content mb-1">Free Shipping</h4>
+                                        <p className="text-base-content/70 text-sm">On orders over $100</p>
+                                    </div>
+                                    <Link href="/products" className="text-success font-bold hover:gap-2 flex items-center gap-1 transition-all">
+                                        Claim
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className="card bg-linear-to-br from-warning/20 to-warning/5 border-2 border-warning/30 hover:scale-105 transition-all duration-300"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-warning rounded-2xl flex items-center justify-center text-3xl">
+                                        💰
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-base-content mb-1">First Order Discount</h4>
+                                        <p className="text-base-content/70 text-sm">Get 15% OFF your first purchase</p>
+                                    </div>
+                                    <Link href="/register" className="text-warning font-bold hover:gap-2 flex items-center gap-1 transition-all">
+                                        Sign Up
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Section 12: FAQ */}
+            <section className="section-padding bg-base-200">
+                <div className="container-custom">
+                    <motion.div {...fadeInUp} className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-base-content">Frequently Asked Questions</h2>
+                        <p className="text-base-content/70 text-lg max-w-2xl mx-auto">
+                            Find answers to common questions about our products and services
+                        </p>
+                    </motion.div>
+
+                    <div className="max-w-4xl mx-auto">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {[
+                                {
+                                    question: 'What payment methods do you accept?',
+                                    answer: 'We accept all major credit cards, debit cards, PayPal, and various digital payment methods. All transactions are secured with SSL encryption.',
+                                    icon: '💳'
+                                },
+                                {
+                                    question: 'How long does shipping take?',
+                                    answer: 'Standard shipping takes 2-3 business days. Express shipping is available for next-day delivery. We provide real-time tracking for all orders.',
+                                    icon: '🚚'
+                                },
+                                {
+                                    question: 'What is your return policy?',
+                                    answer: 'We offer a 30-day money-back guarantee on all products. Items must be unused and in original packaging. Return shipping is free for defective items.',
+                                    icon: '↩️'
+                                },
+                                {
+                                    question: 'Do you ship internationally?',
+                                    answer: 'Yes, we ship to over 50 countries worldwide. International shipping costs and delivery times vary by destination.',
+                                    icon: '🌍'
+                                },
+                                {
+                                    question: 'Are your products authentic?',
+                                    answer: 'Absolutely! All our products are 100% authentic and come with manufacturer warranties. We source directly from authorized distributors.',
+                                    icon: '✅'
+                                },
+                                {
+                                    question: 'How can I track my order?',
+                                    answer: 'Once your order ships, you\'ll receive a tracking number via email. You can also track your order in real-time from your account dashboard.',
+                                    icon: '📦'
+                                }
+                            ].map((faq, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: idx * 0.1, duration: 0.5 }}
+                                    className="card hover:shadow-xl transition-all duration-300"
+                                >
+                                    <div className="flex gap-4">
+                                        <div className="text-4xl shrink-0">{faq.icon}</div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-base-content mb-2">
+                                                {faq.question}
+                                            </h3>
+                                            <p className="text-base-content/70 text-sm leading-relaxed">
+                                                {faq.answer}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <motion.div
+                            {...fadeInUp}
+                            className="mt-12 card bg-linear-to-br from-primary/10 to-secondary/10 text-center border-2 border-primary/20"
+                        >
+                            <h3 className="text-2xl font-bold text-base-content mb-3">
+                                Still have questions?
+                            </h3>
+                            <p className="text-base-content/70 mb-6">
+                                Our friendly customer support team is here to help you 24/7
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Link
+                                    href="/contact"
+                                    className="btn-primary inline-flex items-center gap-2"
+                                >
+                                    <Mail className="w-5 h-5" />
+                                    Contact Support
+                                </Link>
+                                <Link
+                                    href="/help"
+                                    className="btn-secondary inline-flex items-center gap-2"
+                                >
+                                    Visit Help Center
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
                 </div>
             </section>
         </div>
