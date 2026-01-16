@@ -3,6 +3,7 @@ const nextConfig = {
     images: {
         domains: [
             'images.unsplash.com',
+            'i.ibb.co',
             'lh3.googleusercontent.com',
             'i.pravatar.cc',
             'api.dicebear.com',

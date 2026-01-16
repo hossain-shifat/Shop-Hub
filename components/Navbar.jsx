@@ -8,6 +8,7 @@ import { onAuthChange, logout } from '@/lib/firebase/auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 // Theme Hook
 function useTheme() {
@@ -204,7 +205,7 @@ export default function Navbar() {
                         {/* User Profile / Login */}
                         {!isLoading && (
                             user ? (
-                                <div className="relative profile-dropdown bg-base-300 rounded-xl">
+                                <div className="relative profile-dropdown bg-base-300 rounded-lg">
                                     <button
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-all duration-200 group cursor-pointer"
@@ -219,10 +220,14 @@ export default function Navbar() {
                                                 </div>
                                             </div>
                                             {userProfile?.photoURL || user?.photoURL ? (
-                                                <img
-                                                    src={userProfile?.photoURL || user?.photoURL}
+                                                <Image
+                                                    src={userProfile?.photoURL || user?.photoURL || '/avatar-placeholder.png'}
                                                     alt={getDisplayName()}
+                                                    width={40}
+                                                    height={40}
+                                                    quality={100}
                                                     className="w-10 h-10 rounded-full object-cover ring-2 ring-base-200 group-hover:ring-primary/30 transition-all"
+                                                    priority={false}
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-primary-content font-bold ring-2 ring-base-200 group-hover:ring-primary/30 transition-all">
@@ -239,9 +244,13 @@ export default function Navbar() {
                                             <div className="p-4 bg-linear-to-br from-primary/10 to-secondary/10 border-b border-base-300">
                                                 <div className="flex items-center gap-3">
                                                     {userProfile?.photoURL || user?.photoURL ? (
-                                                        <img
-                                                            src={userProfile?.photoURL || user?.photoURL}
+                                                        <Image
+                                                            src={userProfile?.photoURL || user?.photoURL || '/avatar-placeholder.png'}
                                                             alt={getDisplayName()}
+                                                            width={48}
+                                                            height={48}
+                                                            quality={100}
+                                                            priority={true}
                                                             className="w-12 h-12 rounded-full object-cover"
                                                         />
                                                     ) : (
@@ -392,9 +401,12 @@ export default function Navbar() {
                             <div className="mb-4 p-4 rounded-xl bg-linear-to-br from-primary/10 to-secondary/10">
                                 <div className="flex items-center gap-3">
                                     {userProfile?.photoURL || user?.photoURL ? (
-                                        <img
-                                            src={userProfile?.photoURL || user?.photoURL}
+                                        <Image
+                                            src={userProfile?.photoURL || user?.photoURL || '/avatar-placeholder.png'}
                                             alt={getDisplayName()}
+                                            sizes={100}
+                                            quality={100}
+                                            priority={true}
                                             className="w-12 h-12 rounded-full object-cover"
                                         />
                                     ) : (

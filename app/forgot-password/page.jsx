@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
                     {!emailSent ? (
                         <>
                             <div className="text-center mb-8">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
+                                <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-primary via-secondary to-accent flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg">
                                     🔑
                                 </div>
                                 <h2 className="text-3xl font-bold text-base-content mb-2">
