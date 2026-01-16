@@ -5,6 +5,7 @@ const nextConfig = {
             'images.unsplash.com',
             'lh3.googleusercontent.com',
             'i.pravatar.cc',
+            'api.dicebear.com',
         ],
     },
 };

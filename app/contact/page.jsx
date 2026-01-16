@@ -37,8 +37,8 @@ export default function ContactPage() {
         {
             icon: Mail,
             title: 'Email Us',
-            details: 'support@producthub.com',
-            link: 'mailto:support@producthub.com',
+            details: 'support@shophub.com',
+            link: 'mailto:support@shophub.com',
             color: 'from-primary to-secondary'
         },
         {
