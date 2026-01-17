@@ -1,3 +1,4 @@
+// backend/src/routes/auth.js (EXTENDED VERSION)
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -107,6 +108,157 @@ router.get('/user-by-email/:email', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message || 'Failed to get user'
+        });
+    }
+});
+
+// ========== NEW ENDPOINTS FOR DASHBOARD ==========
+
+// Get all users (Admin only)
+router.get('/users', async (req, res) => {
+    try {
+        const { role, search, sort } = req.query;
+        let query = {};
+
+        // Role filter
+        if (role && role !== 'all') {
+            query.role = role;
+        }
+
+        // Search filter
+        if (search) {
+            query.$or = [
+                { displayName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { uid: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Build sort object
+        let sortObj = { createdAt: -1 }; // Default: newest first
+        if (sort === 'name') sortObj = { displayName: 1 };
+        if (sort === 'email') sortObj = { email: 1 };
+        if (sort === 'role') sortObj = { role: 1 };
+
+        const users = await User.find(query).sort(sortObj);
+
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            users
+        });
+    } catch (error) {
+        console.error('Get users error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get users'
+        });
+    }
+});
+
+// Update user (Admin - change role, update profile)
+router.patch('/users/:uid', async (req, res) => {
+    try {
+        const { uid } = req.params;
+        const { displayName, role, photoURL } = req.body;
+
+        const user = await User.findOne({ uid });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+
+        // Update allowed fields
+        if (displayName) user.displayName = displayName;
+        if (role) {
+            // Validate role
+            const validRoles = ['user', 'seller', 'admin'];
+            if (!validRoles.includes(role)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Invalid role. Must be one of: ${validRoles.join(', ')}`
+                });
+            }
+            user.role = role;
+        }
+        if (photoURL) user.photoURL = photoURL;
+
+        user.updatedAt = new Date();
+        await user.save();
+
+        console.log('User updated by admin:', uid);
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to update user'
+        });
+    }
+});
+
+// Delete user (Admin only)
+router.delete('/users/:uid', async (req, res) => {
+    try {
+        const { uid } = req.params;
+
+        const user = await User.findOneAndDelete({ uid });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+
+        console.log('User deleted by admin:', uid);
+        res.status(200).json({
+            success: true,
+            message: 'User deleted successfully',
+            user
+        });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to delete user'
+        });
+    }
+});
+
+// Get user statistics (for dashboard)
+router.get('/users/:uid/stats', async (req, res) => {
+    try {
+        const { uid } = req.params;
+
+        const user = await User.findOne({ uid });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+
+        // You can extend this to include order counts, spending, etc.
+        // by querying the Orders collection
+        const stats = {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            role: user.role,
+            joinedDate: user.createdAt,
+            // Add more stats as needed
+        };
+
+        res.status(200).json({ success: true, stats });
+    } catch (error) {
+        console.error('Get user stats error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to get user stats'
         });
     }
 });

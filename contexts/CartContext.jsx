@@ -38,12 +38,14 @@ export function CartProvider({ children }) {
     }, [wishlistItems, mounted])
 
     const addToCart = (product, quantity = 1) => {
+        const productId = product._id || product.id
+
         setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item.id === product.id)
+            const existingItem = prevItems.find(item => item.id === productId)
 
             if (existingItem) {
                 return prevItems.map(item =>
-                    item.id === product.id
+                    item.id === productId
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 )
@@ -52,7 +54,7 @@ export function CartProvider({ children }) {
             return [
                 ...prevItems,
                 {
-                    id: product.id,
+                    id: productId,
                     name: product.name,
                     price: product.price,
                     image: product.image,
@@ -87,14 +89,16 @@ export function CartProvider({ children }) {
     }
 
     const addToWishlist = (product) => {
+        const productId = product._id || product.id
+
         setWishlistItems(prevItems => {
-            const exists = prevItems.find(item => item.id === product.id)
+            const exists = prevItems.find(item => item.id === productId)
             if (exists) return prevItems
 
             return [
                 ...prevItems,
                 {
-                    id: product.id,
+                    id: productId,
                     name: product.name,
                     price: product.price,
                     image: product.image,

@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database Connection - Force ShopHub database name
 mongoose.connect(process.env.MONGODB_URI, {
-    dbName: 'ShopHub'  // This forces MongoDB to use ShopHub database
+    dbName: 'ShopHub'
 })
     .then(() => {
         console.log('✅ MongoDB Connected Successfully');

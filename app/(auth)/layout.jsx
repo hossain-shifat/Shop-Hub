@@ -1,0 +1,13 @@
+export const metadata = {
+    title: 'Authentication | ShopHub',
+}
+
+export default function AuthLayout({ children }) {
+    return (
+        <div className="">
+            <div className="">
+                {children}
+            </div>
+        </div>
+    )
+}

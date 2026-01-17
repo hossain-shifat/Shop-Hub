@@ -374,5 +374,26 @@ router.get('/order/:orderId', async (req, res) => {
         });
     }
 });
+router.get('/', async (req, res) => {
+    try {
+        const payments = await Payment.find()
+            .sort({ createdAt: -1 });
+
+        console.log(`✅ Found ${payments.length} payments`);
+
+        res.status(200).json({
+            success: true,
+            count: payments.length,
+            payments: payments
+        });
+    } catch (error) {
+        console.error('❌ Get payments error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            payments: []  // Return empty array on error
+        });
+    }
+});
 
 module.exports = router;

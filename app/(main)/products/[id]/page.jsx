@@ -49,8 +49,8 @@ export default function ProductDetailPage() {
     }
 
     const handleWishlistToggle = () => {
-        if (isInWishlist(product.id)) {
-            removeFromWishlist(product.id)
+        if (isInWishlist(product._id)) {
+            removeFromWishlist(product._id)
         } else {
             addToWishlist(product)
         }

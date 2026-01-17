@@ -75,6 +75,28 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.get('/', async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .sort({ createdAt: -1 });
+
+        console.log(`✅ Found ${orders.length} orders`);
+
+        res.status(200).json({
+            success: true,
+            count: orders.length,
+            orders: orders
+        });
+    } catch (error) {
+        console.error('❌ Get orders error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            orders: []
+        });
+    }
+});
+
 // Get user orders by userId (Firebase UID)
 router.get('/user/:userId', async (req, res) => {
     try {
