@@ -168,14 +168,14 @@ export default function UserManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Search */}
                     <div className="form-control">
-                        <div className="input-group">
-                            <span className="bg-base-300">
+                        <div className="input">
+                            <span className="">
                                 <Search className="w-5 h-5" />
                             </span>
                             <input
                                 type="text"
                                 placeholder="Search by name, email, or ID..."
-                                className="input input-bordered flex-1"
+                                className="flex-1"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />

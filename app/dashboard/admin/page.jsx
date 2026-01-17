@@ -202,6 +202,19 @@ export default function AdminDashboard() {
             </div>
 
             {/* Charts Row 1 */}
+            <div className="grid grid-cols-1 gap-6">
+                <AreaChart
+                    data={chartData.revenueOverTime}
+                    dataKeys={[
+                        { key: 'revenue', name: 'Revenue ($)' },
+                        { key: 'orders', name: 'Orders' }
+                    ]}
+                    title="Revenue & Orders Over Time (Last 7 Days)"
+                    colors={['#8b5cf6', '#ec4899']}
+                />
+            </div>
+
+            {/* Charts Row 2 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <LineChart
                     data={chartData.userActivity}
@@ -213,19 +226,6 @@ export default function AdminDashboard() {
                     data={chartData.ordersByStatus}
                     title="Orders by Status"
                     colors={['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b']}
-                />
-            </div>
-
-            {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 gap-6">
-                <AreaChart
-                    data={chartData.revenueOverTime}
-                    dataKeys={[
-                        { key: 'revenue', name: 'Revenue ($)' },
-                        { key: 'orders', name: 'Orders' }
-                    ]}
-                    title="Revenue & Orders Over Time (Last 7 Days)"
-                    colors={['#8b5cf6', '#ec4899']}
                 />
             </div>
         </div>
