@@ -202,14 +202,14 @@ export default function UserPayments() {
             {/* Search */}
             <div className="card bg-base-200 p-6">
                 <div className="form-control">
-                    <div className="input-group">
-                        <span className="bg-base-300">
+                    <div className="input">
+                        <span className="">
                             <Search className="w-5 h-5" />
                         </span>
                         <input
                             type="text"
                             placeholder="Search by order ID or transaction ID..."
-                            className="input input-bordered flex-1"
+                            className="flex-1"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
