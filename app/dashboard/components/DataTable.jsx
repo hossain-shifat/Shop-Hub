@@ -17,6 +17,7 @@ export default function DataTable({
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     const currentData = data.slice(startIndex, endIndex)
+    console.log(currentData)
 
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) {
@@ -52,6 +53,7 @@ export default function DataTable({
                 <table className="table table-zebra w-full">
                     <thead>
                         <tr>
+                            <th>Sl.</th>
                             {columns.map((column, index) => (
                                 <th
                                     key={index}
@@ -66,6 +68,7 @@ export default function DataTable({
                         {currentData.length > 0 ? (
                             currentData.map((row, rowIndex) => (
                                 <tr key={rowIndex}>
+                                    <td>{startIndex + rowIndex + 1}</td>
                                     {columns.map((column, colIndex) => (
                                         <td
                                             key={colIndex}

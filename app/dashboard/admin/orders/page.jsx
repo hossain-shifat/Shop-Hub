@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Package, Truck, CheckCircle, Clock, Calendar, Eye } from 'lucide-react'
+import { Search, Package, Clock, CheckCircle, Calendar } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import DataTable from '../../components/DataTable'
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState([])
@@ -56,39 +57,6 @@ export default function AdminOrders() {
         setFilteredOrders(filtered)
     }
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'pending':
-                return 'bg-warning/10 text-warning border-warning/20'
-            case 'processing':
-            case 'confirmed':
-                return 'bg-info/10 text-info border-info/20'
-            case 'shipped':
-                return 'bg-primary/10 text-primary border-primary/20'
-            case 'delivered':
-                return 'bg-success/10 text-success border-success/20'
-            case 'cancelled':
-                return 'bg-error/10 text-error border-error/20'
-            default:
-                return 'bg-base-300 text-base-content border-base-300'
-        }
-    }
-
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case 'pending':
-            case 'processing':
-            case 'confirmed':
-                return <Clock className="w-5 h-5" />
-            case 'shipped':
-                return <Truck className="w-5 h-5" />
-            case 'delivered':
-                return <CheckCircle className="w-5 h-5" />
-            default:
-                return <Package className="w-5 h-5" />
-        }
-    }
-
     const handleUpdateStatus = async (orderId, newStatus) => {
         try {
             const response = await fetch(
@@ -128,6 +96,80 @@ export default function AdminOrders() {
         .filter(o => o.paymentStatus === 'completed')
         .reduce((sum, o) => sum + o.total, 0)
 
+    const columns = [
+        {
+            header: 'Order ID',
+            accessor: 'orderId',
+            render: (row) => <span className="font-mono text-sm">{row.orderId}</span>
+        },
+        {
+            header: 'Date',
+            accessor: 'createdAt',
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-base-content/60" />
+                    <span className="text-sm">{new Date(row.createdAt).toLocaleDateString()}</span>
+                </div>
+            )
+        },
+        {
+            header: 'Items',
+            accessor: 'items',
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    {row.items.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="avatar">
+                            <div className="w-8 h-8 rounded">
+                                {item.image ? (
+                                    <Image src={item.image} alt={item.name} width={32} height={32} className="object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-base-300 flex items-center justify-center">
+                                        <Package className="w-4 h-4" />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {row.items.length > 3 && (
+                        <span className="text-xs text-base-content/60">+{row.items.length - 3}</span>
+                    )}
+                </div>
+            )
+        },
+        {
+            header: 'Total',
+            accessor: 'total',
+            render: (row) => <span className="font-bold text-primary">${row.total.toFixed(2)}</span>
+        },
+        {
+            header: 'Payment',
+            accessor: 'paymentStatus',
+            render: (row) => (
+                <span className={`badge ${row.paymentStatus === 'completed' ? 'badge-success' : 'badge-warning'
+                    }`}>
+                    {row.paymentStatus}
+                </span>
+            )
+        },
+        {
+            header: 'Status',
+            accessor: 'status',
+            render: (row) => (
+                <select
+                    className="select select-sm select-bordered"
+                    value={row.status}
+                    onChange={(e) => handleUpdateStatus(row.orderId, e.target.value)}
+                >
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            )
+        }
+    ]
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -146,7 +188,6 @@ export default function AdminOrders() {
                 <p className="text-base-content/70">Manage and track all customer orders</p>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="card bg-base-200 p-6">
                     <div className="flex items-center gap-4">
@@ -198,7 +239,6 @@ export default function AdminOrders() {
                 </div>
             </div>
 
-            {/* Filters */}
             <div className="flex gap-3 overflow-x-auto pb-2">
                 {statusFilters.map((filter) => (
                     <button
@@ -214,17 +254,16 @@ export default function AdminOrders() {
                 ))}
             </div>
 
-            {/* Search */}
             <div className="card bg-base-200 p-6">
                 <div className="form-control">
-                    <div className="input">
-                        <span className="">
+                    <div className="input-group">
+                        <span className="bg-base-300">
                             <Search className="w-5 h-5" />
                         </span>
                         <input
                             type="text"
                             placeholder="Search by order ID or user ID..."
-                            className="flex-1"
+                            className="input input-bordered flex-1"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -232,98 +271,14 @@ export default function AdminOrders() {
                 </div>
             </div>
 
-            {/* Orders Table */}
-            <div className="card bg-base-200 overflow-x-auto">
-                <table className="table table-zebra">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Date</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredOrders.map((order) => (
-                            <tr key={order.orderId}>
-                                <td className="font-mono text-sm">{order.orderId}</td>
-                                <td>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-base-content/60" />
-                                        <span className="text-sm">
-                                            {new Date(order.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className="flex items-center gap-2">
-                                        {order.items.slice(0, 3).map((item, idx) => (
-                                            <div key={idx} className="avatar">
-                                                <div className="w-8 h-8 rounded">
-                                                    {item.image ? (
-                                                        <Image
-                                                            src={item.image}
-                                                            alt={item.name}
-                                                            width={32}
-                                                            height={32}
-                                                            className="object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-base-300 flex items-center justify-center">
-                                                            <Package className="w-4 h-4" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {order.items.length > 3 && (
-                                            <span className="text-xs text-base-content/60">
-                                                +{order.items.length - 3}
-                                            </span>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="font-bold text-primary">${order.total.toFixed(2)}</td>
-                                <td>
-                                    <span className={`badge ${order.paymentStatus === 'completed'
-                                            ? 'badge-success'
-                                            : 'badge-warning'
-                                        }`}>
-                                        {order.paymentStatus}
-                                    </span>
-                                </td>
-                                <td>
-                                    <select
-                                        className="select select-sm select-bordered"
-                                        value={order.status}
-                                        onChange={(e) => handleUpdateStatus(order.orderId, e.target.value)}
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="processing">Processing</option>
-                                        <option value="shipped">Shipped</option>
-                                        <option value="delivered">Delivered</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button className="btn btn-sm btn-ghost">
-                                        <Eye className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {filteredOrders.length === 0 && (
-                    <div className="text-center py-12">
-                        <Package className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                        <p className="text-base-content/70">No orders found</p>
-                    </div>
-                )}
+            <div className="card bg-base-200 p-6">
+                <DataTable
+                    columns={columns}
+                    data={filteredOrders}
+                    itemsPerPage={5}
+                    emptyMessage="No orders found"
+                    EmptyIcon={Package}
+                />
             </div>
         </div>
     )
