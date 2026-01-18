@@ -5,10 +5,10 @@ const PROTECTED_ROUTES = [
     '/add-product',
     '/profile',
     '/settings',
-    '/cart',
-    '/checkout',
-    '/orders',
-    '/wishlist'
+    // '/cart',
+    // '/checkout',
+    // '/orders',
+    // '/wishlist'
 ]
 
 // ---- MIDDLEWARE ----

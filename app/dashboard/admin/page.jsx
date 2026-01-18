@@ -152,7 +152,7 @@ export default function AdminDashboard() {
 
     if (loading) {
         return (
-            <Loading/>
+            <Loading />
         )
     }
 

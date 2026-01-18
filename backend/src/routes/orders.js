@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const { v4: uuidv4 } = require('uuid');
+const NotificationService = require('../utils/notificationService');
 
 // Create order (with duplicate prevention)
 router.post('/', async (req, res) => {
@@ -64,6 +65,22 @@ router.post('/', async (req, res) => {
         const order = new Order(orderData);
         await order.save();
 
+        // Send notification
+        await NotificationService.notifyOrderPlaced(
+            order.userId,
+            order.orderId,
+            order.total
+        );
+
+        // If seller exists, notify seller
+        if (order.sellerId) {
+            await NotificationService.notifyNewOrder(
+                order.sellerId,
+                order.orderId,
+                order.customerName,
+                order.total
+            );
+        }
         console.log('New order created:', orderId, 'Payment Status:', order.paymentStatus);
         res.status(201).json({ success: true, order });
     } catch (error) {

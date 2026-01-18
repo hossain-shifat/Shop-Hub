@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const NotificationService = require('../utils/notificationService');
 
 // Register or update user from Firebase (with duplicate prevention)
 router.post('/register', async (req, res) => {
@@ -51,6 +52,13 @@ router.post('/register', async (req, res) => {
             });
             await user.save();
             console.log('New user created:', uid);
+        }
+
+        if (!user) {
+            await NotificationService.notifyAccountCreated(
+                user.uid,
+                user.displayName
+            );
         }
 
         res.status(200).json({ success: true, user });

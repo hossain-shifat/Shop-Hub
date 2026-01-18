@@ -5,6 +5,7 @@ import { Search, Package, Clock, CheckCircle, Calendar } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import DataTable from '../../components/DataTable'
+import Loading from '../../loading'
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState([])
@@ -172,12 +173,7 @@ export default function AdminOrders() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-base-content/70">Loading orders...</p>
-                </div>
-            </div>
+           <Loading/>
         )
     }
 

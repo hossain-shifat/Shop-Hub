@@ -5,6 +5,7 @@ import { Search, Trash2, Package, User } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import DataTable from '../../components/DataTable'
+import Loading from '../../loading'
 
 export default function AdminProducts() {
     const [products, setProducts] = useState([])
@@ -196,12 +197,7 @@ export default function AdminProducts() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-base-content/70">Loading products...</p>
-                </div>
-            </div>
+            <Loading />
         )
     }
 

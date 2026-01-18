@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Activity, User, Package, ShoppingCart, CreditCard, Calendar, Search } from 'lucide-react'
 import DataTable from '../../components/DataTable'
+import Loading from '../../loading'
 
 export default function AdminSystemLogs() {
     const [logs, setLogs] = useState([])
@@ -168,10 +169,10 @@ export default function AdminSystemLogs() {
             accessor: 'status',
             render: (row) => (
                 <span className={`badge ${row.status === 'active' || row.status === 'delivered' || row.status === 'succeeded' || row.status === 'completed'
-                        ? 'badge-success'
-                        : row.status === 'pending' || row.status === 'processing'
-                            ? 'badge-warning'
-                            : 'badge-error'
+                    ? 'badge-success'
+                    : row.status === 'pending' || row.status === 'processing'
+                        ? 'badge-warning'
+                        : 'badge-error'
                     }`}>
                     {row.status}
                 </span>
@@ -196,12 +197,7 @@ export default function AdminSystemLogs() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-base-content/70">Loading system logs...</p>
-                </div>
-            </div>
+            <Loading />
         )
     }
 
@@ -265,8 +261,8 @@ export default function AdminSystemLogs() {
                         key={filter.value}
                         onClick={() => setActionFilter(filter.value)}
                         className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${actionFilter === filter.value
-                                ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
-                                : 'bg-base-200 text-base-content hover:bg-base-300'
+                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
+                            : 'bg-base-200 text-base-content hover:bg-base-300'
                             }`}
                     >
                         {filter.label} ({filter.count})

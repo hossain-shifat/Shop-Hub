@@ -2,7 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { verifyEmailConfig } = require('./utils/email');
+const { verifyEmailConfig } = require('./utils/email')
+
 
 const app = express();
 
@@ -70,3 +71,5 @@ app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
+module.exports = app;

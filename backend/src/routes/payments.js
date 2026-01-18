@@ -6,6 +6,7 @@ const Order = require('../models/Order');
 const { generateInvoice } = require('../utils/invoice');
 const { sendOrderConfirmationEmail } = require('../utils/email');
 const User = require('../models/User');
+const NotificationService = require('../utils/notificationService');
 
 // Create Stripe Checkout Session
 router.post('/create-checkout-session', async (req, res) => {
@@ -92,6 +93,21 @@ router.post('/create-checkout-session', async (req, res) => {
             success_url: `${process.env.FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
             cancel_url: `${process.env.FRONTEND_URL}/payment-cancel?order_id=${orderId}`,
         });
+
+        if (payment && order) {
+            // Notify user
+            await NotificationService.notifyPaymentSuccess(
+                order.userId,
+                order.orderId,
+                payment.amount
+            );
+
+            // Notify order confirmed
+            await NotificationService.notifyOrderConfirmed(
+                order.userId,
+                order.orderId
+            );
+        }
 
         res.status(200).json({
             success: true,
