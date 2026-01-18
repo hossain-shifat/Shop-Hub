@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShoppingBag, Menu, X, Sun, Moon, User, LogOut, Settings, Heart, Package, ShoppingCart } from 'lucide-react'
+import { ShoppingBag, Menu, X, Sun, Moon, User, LogOut, Settings, Heart, Package, ShoppingCart, LayoutDashboard } from 'lucide-react'
 import Logo from './Logo'
 import { useCart } from '@/contexts/CartContext'
 import { onAuthChange, logout } from '@/lib/firebase/auth'
@@ -47,6 +47,19 @@ export default function Navbar() {
 
     // Calculate total items in cart
     const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0)
+
+    // Get dashboard route based on user role
+    const getDashboardRoute = () => {
+        if (!userProfile?.role) return '/dashboard/user'
+        switch (userProfile.role) {
+            case 'admin':
+                return '/dashboard/admin'
+            case 'seller':
+                return '/dashboard/seller'
+            default:
+                return '/dashboard/user'
+        }
+    }
 
     // Listen to Firebase auth state changes
     useEffect(() => {
@@ -99,6 +112,7 @@ export default function Navbar() {
         { href: '/products', label: 'Products' },
         { href: '/about', label: 'About' },
         { href: '/contact', label: 'Contact' },
+        { href: `${getDashboardRoute()}`, label: 'Dashboard' },
     ]
 
     const handleLogout = async () => {
@@ -278,6 +292,25 @@ export default function Navbar() {
 
                                             {/* Menu Items */}
                                             <div className="p-2">
+                                                {/* Dashboard Link */}
+                                                <Link
+                                                    href={getDashboardRoute()}
+                                                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 transition-all duration-200 group mb-2"
+                                                    onClick={() => setIsProfileOpen(false)}
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                                                        <LayoutDashboard className="w-4 h-4 text-white" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <span className="font-semibold text-base-content group-hover:text-primary transition-colors block">
+                                                            Dashboard
+                                                        </span>
+                                                        <span className="text-xs text-base-content/60">
+                                                            Manage your account
+                                                        </span>
+                                                    </div>
+                                                </Link>
+
                                                 <Link
                                                     href="/profile"
                                                     className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-all duration-200 group"
@@ -404,7 +437,8 @@ export default function Navbar() {
                                         <Image
                                             src={userProfile?.photoURL || user?.photoURL || '/avatar-placeholder.png'}
                                             alt={getDisplayName()}
-                                            sizes={100}
+                                            width={48}
+                                            height={48}
                                             quality={100}
                                             priority={true}
                                             className="w-12 h-12 rounded-full object-cover"
@@ -451,6 +485,16 @@ export default function Navbar() {
                         {!isLoading && (
                             user ? (
                                 <div className="mt-4 pt-4 border-t border-base-300 space-y-1">
+                                    {/* Dashboard Link Mobile */}
+                                    <Link
+                                        href={getDashboardRoute()}
+                                        className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 transition-all duration-200"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        <LayoutDashboard className="w-5 h-5 text-primary" />
+                                        <span className="font-semibold text-primary">Dashboard</span>
+                                    </Link>
+
                                     <Link
                                         href="/profile"
                                         className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-all duration-200"

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Users, Package, ShoppingCart, DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
 import { LineChart, AreaChart, PieChart, StatsCard } from '../components/charts/Index'
+import Loading from '../loading'
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
@@ -151,12 +152,7 @@ export default function AdminDashboard() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-base-content/70">Loading dashboard...</p>
-                </div>
-            </div>
+            <Loading/>
         )
     }
 

@@ -275,50 +275,50 @@ export default function AdminReports() {
             title: 'Orders',
             icon: Package,
             count: stats.totalOrders,
-            gradient: 'from-blue-500 to-cyan-500',
+            linear: 'from-blue-500 to-cyan-500',
             exportFn: exportOrders
         },
         {
             title: 'Users',
             icon: Users,
             count: stats.totalUsers,
-            gradient: 'from-purple-500 to-pink-500',
+            linear: 'from-purple-500 to-pink-500',
             exportFn: exportUsers
         },
         {
             title: 'Products',
             icon: Package,
             count: stats.totalProducts,
-            gradient: 'from-green-500 to-emerald-500',
+            linear: 'from-green-500 to-emerald-500',
             exportFn: exportProducts
         },
         {
             title: 'Payments',
             icon: CreditCard,
             count: stats.totalTransactions,
-            gradient: 'from-orange-500 to-red-500',
+            linear: 'from-orange-500 to-red-500',
             exportFn: exportPayments
         },
         {
             title: 'Transactions',
             icon: DollarSign,
             count: stats.totalTransactions,
-            gradient: 'from-yellow-500 to-amber-500',
+            linear: 'from-yellow-500 to-amber-500',
             exportFn: exportTransactions
         }
     ]
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-100">
+        <div className="min-h-screen bg-linear-to-br from-base-100 via-base-200 to-base-100">
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                             <FileText className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                            <h1 className="text-5xl font-bold bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                                 Reports & Analytics
                             </h1>
                             <p className="text-base-content/70 text-lg mt-2">
@@ -330,7 +330,7 @@ export default function AdminReports() {
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="card bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-xl">
+                    <div className="card bg-linear-to-br from-blue-500 to-cyan-500 text-white shadow-xl">
                         <div className="card-body">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -342,7 +342,7 @@ export default function AdminReports() {
                         </div>
                     </div>
 
-                    <div className="card bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-xl">
+                    <div className="card bg-linear-to-br from-purple-500 to-pink-500 text-white shadow-xl">
                         <div className="card-body">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -354,7 +354,7 @@ export default function AdminReports() {
                         </div>
                     </div>
 
-                    <div className="card bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-xl">
+                    <div className="card bg-linear-to-br from-green-500 to-emerald-500 text-white shadow-xl">
                         <div className="card-body">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -366,7 +366,7 @@ export default function AdminReports() {
                         </div>
                     </div>
 
-                    <div className="card bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-xl">
+                    <div className="card bg-linear-to-br from-orange-500 to-red-500 text-white shadow-xl">
                         <div className="card-body">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -427,7 +427,7 @@ export default function AdminReports() {
                             <div key={card.title} className="card bg-base-200 shadow-xl border border-base-300 hover:shadow-2xl transition-all duration-300">
                                 <div className="card-body">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg`}>
+                                        <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${card.linear} flex items-center justify-center shadow-lg`}>
                                             <Icon className="w-7 h-7 text-white" />
                                         </div>
                                         <div>
@@ -475,7 +475,7 @@ export default function AdminReports() {
                 </div>
 
                 {/* Export All */}
-                <div className="card bg-gradient-to-br from-primary to-secondary text-white shadow-xl mt-8">
+                <div className="card bg-linear-to-br from-primary to-secondary text-white shadow-xl mt-8">
                     <div className="card-body">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-4">

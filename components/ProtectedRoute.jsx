@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
 import { Shield, Lock } from 'lucide-react'
+import Error403 from './error-pages/Error403'
+import Loading from '@/app/dashboard/loading'
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
     const { user, userData, loading } = useFirebaseAuth()
@@ -39,15 +41,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     // Show loading state
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-base-100 via-base-200 to-base-100">
-                <div className="text-center">
-                    <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                    <h2 className="text-2xl font-bold text-base-content mb-2">Loading...</h2>
-                    <p className="text-base-content/70">Please wait while we verify your access</p>
-                </div>
-            </div>
+            <Loading />
         )
     }
+
+    // if (!hasPermission) {
+    //     return <Error403 />
+    // }
 
     // Show unauthorized state
     if (!user) {
