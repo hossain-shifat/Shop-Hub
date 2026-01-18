@@ -141,15 +141,15 @@ export default function AddProductPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-100">
+        <div className="min-h-screen bg-linear-to-br from-base-100 via-base-200 to-base-100">
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="mb-8">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                             <Package className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                            <h1 className="text-5xl font-bold bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                                 Add New Product
                             </h1>
                             <p className="text-base-content/70 text-lg mt-2">
@@ -164,7 +164,7 @@ export default function AddProductPage() {
                     <div className="card bg-base-200 shadow-xl border border-base-300">
                         <div className="card-body">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
                                     <FileText className="w-6 h-6 text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold">Basic Information</h2>
@@ -194,7 +194,7 @@ export default function AddProductPage() {
                                         value={formData.description}
                                         onChange={handleChange}
                                         className="textarea textarea-bordered textarea-lg h-32 w-full focus:textarea-primary leading-relaxed"
-                                        placeholder="Transform your home into a world-class fitness studio with the Peloton Bike+. This premium indoor cycling bike combines cutting-edge technology with immersive fitness experiences..."
+                                        placeholder="Description"
                                     />
                                     <label className="label">
                                         <span className="label-text-alt text-base-content/60">
@@ -268,7 +268,7 @@ export default function AddProductPage() {
                         <div className="card-body">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                                         <Image className="w-6 h-6 text-white" />
                                     </div>
                                     <h2 className="text-3xl font-bold">Product Images</h2>
@@ -334,7 +334,7 @@ export default function AddProductPage() {
                         <div className="card-body">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                                         <Sparkles className="w-6 h-6 text-white" />
                                     </div>
                                     <h2 className="text-3xl font-bold">Product Features</h2>
@@ -378,7 +378,7 @@ export default function AddProductPage() {
                     <div className="card bg-base-200 shadow-xl border border-base-300">
                         <div className="card-body">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-xl bg-linear-to-br from-orange-500 to-red-500 flex items-center justify-center">
                                     <Settings className="w-6 h-6 text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold">Specifications</h2>

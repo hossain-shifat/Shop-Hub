@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import DashboardNavbar from '../components/DashboardNavbar'
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export default function AdminDashboardLayout({ children }) {
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -159,8 +160,8 @@ export default function AdminDashboardLayout({ children }) {
                                     <Link
                                         href={item.href}
                                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${active
-                                                ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
-                                                : 'text-base-content hover:bg-base-300'
+                                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
+                                            : 'text-base-content hover:bg-base-300'
                                             } ${isCollapsed ? 'justify-center' : ''}`}
                                         title={isCollapsed ? item.name : ''}
                                     >
@@ -198,7 +199,9 @@ export default function AdminDashboardLayout({ children }) {
                 <DashboardNavbar user={userData} role="admin" notifications={notifications} />
 
                 <main className="flex-1 overflow-y-auto p-6">
-                    {children}
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        {children}
+                    </ProtectedRoute>
                 </main>
             </div>
         </div>

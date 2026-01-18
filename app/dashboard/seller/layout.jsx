@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import DashboardNavbar from '../components/DashboardNavbar'
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export default function SellerDashboardLayout({ children }) {
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -174,7 +175,9 @@ export default function SellerDashboardLayout({ children }) {
             <div className="flex-1 flex flex-col overflow-hidden">
                 <DashboardNavbar user={userData} role="seller" notifications={notifications} />
                 <main className="flex-1 overflow-y-auto p-6">
-                    {children}
+                    <ProtectedRoute allowedRoles={['seller']}>
+                        {children}
+                    </ProtectedRoute>
                 </main>
             </div>
         </div>
