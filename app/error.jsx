@@ -11,8 +11,8 @@ export default function GlobalError({ error, reset }) {
     }, [error])
 
     return (
-        <html>
-            <body>
+        <div>
+            <div>
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-100 via-base-200 to-base-100 px-4">
                     <div className="max-w-2xl w-full text-center">
                         {/* Icon */}
@@ -73,7 +73,7 @@ export default function GlobalError({ error, reset }) {
                         </div>
                     </div>
                 </div>
-            </body>
-        </html>
+            </div>
+        </div>
     )
 }

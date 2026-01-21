@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Download, FileText, Users, Package, DollarSign, CreditCard, TrendingUp, Calendar, Filter } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Loading from '../../loading'
 
 export default function AdminReports() {
     const [loading, setLoading] = useState(false)
@@ -307,6 +308,10 @@ export default function AdminReports() {
             exportFn: exportTransactions
         }
     ]
+
+    if (loading) {
+        return <Loading />
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-base-100 via-base-200 to-base-100">
