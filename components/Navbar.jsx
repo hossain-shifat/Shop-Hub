@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import Image from 'next/image'
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
+import NotificationDropdown from './NotificationDropdown'
 
 // Theme Hook
 function useTheme() {
@@ -203,6 +204,10 @@ export default function Navbar() {
                             )}
                         </Link>
 
+
+                        {/* Notifications Bell */}
+                        <NotificationDropdown />
+                        
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
