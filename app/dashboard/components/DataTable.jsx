@@ -17,7 +17,6 @@ export default function DataTable({
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     const currentData = data.slice(startIndex, endIndex)
-    console.log(currentData)
 
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) {

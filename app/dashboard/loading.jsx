@@ -1,10 +1,10 @@
 'use client'
 
-import { ShoppingCart, Package, Sparkles } from 'lucide-react'
+import { ShoppingCart, Package, Sparkles, ShoppingBag } from 'lucide-react'
 
 export default function Loading() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-100 via-base-200 to-base-100 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-base-100 via-base-200 to-base-100 relative overflow-hidden">
             <div className="text-center relative z-10">
                 {/* Main Loading Animation */}
                 <div className="mb-10 flex justify-center">
@@ -18,19 +18,19 @@ export default function Loading() {
                         {/* Center Shopping Cart */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="relative">
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center shadow-2xl animate-float">
-                                    <ShoppingCart className="w-10 h-10 text-white" strokeWidth={2.5} />
+                                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-primary via-secondary to-accent flex items-center justify-center shadow-2xl animate-float">
+                                    <ShoppingBag className="w-10 h-10 text-white" strokeWidth={2.5} />
                                 </div>
 
                                 {/* Glow Effect */}
-                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-secondary opacity-50 blur-xl animate-pulse-glow"></div>
+                                <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-primary to-secondary opacity-50 blur-xl animate-pulse-glow"></div>
                             </div>
                         </div>
 
                         {/* Orbiting Package Icon */}
                         <div className="absolute inset-0 animate-orbit">
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-success to-accent flex items-center justify-center shadow-lg animate-bounce-subtle">
+                                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-success to-accent flex items-center justify-center shadow-lg animate-bounce-subtle">
                                     <Package className="w-5 h-5 text-white" strokeWidth={2.5} />
                                 </div>
                             </div>
@@ -55,7 +55,7 @@ export default function Loading() {
                 {/* Text Content */}
                 <div className="animate-fade-in">
                     <h2 className="text-3xl font-bold mb-3 tracking-tight">
-                        <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient">
+                        <span className="bg-linear-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-linear">
                             Preparing Your Shop
                         </span>
                     </h2>
@@ -67,8 +67,8 @@ export default function Loading() {
                 {/* Progress Bar */}
                 <div className="max-w-xs mx-auto animate-slide-up">
                     <div className="h-2 bg-base-300 rounded-full overflow-hidden shadow-inner relative">
-                        <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full shadow-lg animate-loading-progress"></div>
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                        <div className="h-full bg-linear-to-r from-primary via-secondary to-accent rounded-full shadow-lg animate-loading-progress"></div>
+                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
                     </div>
 
                     {/* Loading Dots */}
@@ -152,7 +152,7 @@ export default function Loading() {
                     50% { transform: scale(1.5); opacity: 1; }
                 }
 
-                @keyframes gradient {
+                @keyframes linear {
                     0% { background-position: 0% 50%; }
                     50% { background-position: 100% 50%; }
                     100% { background-position: 0% 50%; }
@@ -218,9 +218,9 @@ export default function Loading() {
                     animation: bounce-dot 1s ease-in-out infinite;
                 }
 
-                .animate-gradient {
+                .animate-linear {
                     background-size: 200% 200%;
-                    animation: gradient 3s ease infinite;
+                    animation: linear 3s ease infinite;
                 }
             `}</style>
         </div>

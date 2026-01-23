@@ -75,7 +75,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
                     </div>
                     <h2 className="text-3xl font-bold text-base-content mb-4">Insufficient Permissions</h2>
                     <p className="text-base-content/70 mb-6">
-                        You don't have permission to access this page. Your role: <strong>{userData.role}</strong>
+                        You don&apos;t have permission to access this page. Your role: <strong>{userData.role}</strong>
                     </p>
                     <button
                         onClick={() => router.push('/')}

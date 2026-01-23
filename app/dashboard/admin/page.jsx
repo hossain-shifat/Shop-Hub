@@ -6,6 +6,7 @@ import { LineChart, AreaChart, PieChart, StatsCard } from '../components/charts/
 import DataTable from '../components/DataTable'
 import Loading from '../loading'
 import Link from 'next/link'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
@@ -264,142 +265,144 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-                <p className="text-base-content/70">Overview of your platform performance</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatsCard
-                    title="Total Users"
-                    value={stats.totalUsers.toLocaleString()}
-                    change={stats.userGrowth}
-                    icon={Users}
-                    trend={parseFloat(stats.userGrowth) >= 0 ? 'up' : 'down'}
-                />
-                <StatsCard
-                    title="Total Products"
-                    value={stats.totalProducts.toLocaleString()}
-                    change={stats.productGrowth}
-                    icon={Package}
-                    trend="up"
-                />
-                <StatsCard
-                    title="Total Orders"
-                    value={stats.totalOrders.toLocaleString()}
-                    change={stats.orderGrowth}
-                    icon={ShoppingCart}
-                    trend={parseFloat(stats.orderGrowth) >= 0 ? 'up' : 'down'}
-                />
-                <StatsCard
-                    title="Total Revenue"
-                    value={`$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                    change={stats.revenueGrowth}
-                    icon={DollarSign}
-                    trend="up"
-                />
-            </div>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 gap-6">
-                <AreaChart
-                    data={chartData.revenueOverTime}
-                    dataKeys={[
-                        { key: 'revenue', name: 'Revenue ($)' },
-                        { key: 'orders', name: 'Orders' }
-                    ]}
-                    title="Revenue & Orders Over Time (Last 7 Days)"
-                    colors={['#8b5cf6', '#ec4899']}
-                />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <LineChart
-                    data={chartData.userActivity}
-                    dataKeys={[{ key: 'users', name: 'New Users' }]}
-                    title="User Growth (Last 7 Days)"
-                    colors={['#8b5cf6']}
-                />
-                <PieChart
-                    data={chartData.ordersByStatus}
-                    title="Orders by Status"
-                    colors={['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b']}
-                />
-            </div>
-
-            {/* Tables Section */}
-            <div className="grid grid-cols-1 gap-6">
-                {/* Recent Users */}
-                <div className="card bg-base-200">
-                    <div className="card-body">
-                        <h2 className="card-title text-2xl mb-4">
-                            <Users className="w-6 h-6" />
-                            Recent Users
-                        </h2>
-                        <DataTable
-                            columns={userColumns}
-                            data={tableData.recentUsers}
-                            itemsPerPage={5}
-                            emptyMessage="No users found"
-                            EmptyIcon={Users}
-                        />
-                    </div>
+        <ProtectedRoute allowedRoles={['admin']}>
+            <div className="space-y-6">
+                {/* Header */}
+                <div>
+                    <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+                    <p className="text-base-content/70">Overview of your platform performance</p>
                 </div>
 
-                {/* Recent Orders */}
-                <div className="card bg-base-200">
-                    <div className="card-body">
-                        <h2 className="card-title text-2xl mb-4">
-                            <ShoppingCart className="w-6 h-6" />
-                            Recent Orders
-                        </h2>
-                        <DataTable
-                            columns={orderColumns}
-                            data={tableData.recentOrders}
-                            itemsPerPage={5}
-                            emptyMessage="No orders found"
-                            EmptyIcon={ShoppingCart}
-                        />
-                    </div>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatsCard
+                        title="Total Users"
+                        value={stats.totalUsers.toLocaleString()}
+                        change={stats.userGrowth}
+                        icon={Users}
+                        trend={parseFloat(stats.userGrowth) >= 0 ? 'up' : 'down'}
+                    />
+                    <StatsCard
+                        title="Total Products"
+                        value={stats.totalProducts.toLocaleString()}
+                        change={stats.productGrowth}
+                        icon={Package}
+                        trend="up"
+                    />
+                    <StatsCard
+                        title="Total Orders"
+                        value={stats.totalOrders.toLocaleString()}
+                        change={stats.orderGrowth}
+                        icon={ShoppingCart}
+                        trend={parseFloat(stats.orderGrowth) >= 0 ? 'up' : 'down'}
+                    />
+                    <StatsCard
+                        title="Total Revenue"
+                        value={`$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        change={stats.revenueGrowth}
+                        icon={DollarSign}
+                        trend="up"
+                    />
                 </div>
 
-                {/* Late Invoices */}
-                <div className="card bg-base-200">
-                    <div className="card-body">
-                        <h2 className="card-title text-2xl mb-4">
-                            <FileText className="w-6 h-6 text-error" />
-                            Late Invoices
-                        </h2>
-                        <DataTable
-                            columns={invoiceColumns}
-                            data={tableData.lateInvoices}
-                            itemsPerPage={5}
-                            emptyMessage="No late invoices"
-                            EmptyIcon={FileText}
-                        />
-                    </div>
+                {/* Charts */}
+                <div className="grid grid-cols-1 gap-6">
+                    <AreaChart
+                        data={chartData.revenueOverTime}
+                        dataKeys={[
+                            { key: 'revenue', name: 'Revenue ($)' },
+                            { key: 'orders', name: 'Orders' }
+                        ]}
+                        title="Revenue & Orders Over Time (Last 7 Days)"
+                        colors={['#8b5cf6', '#ec4899']}
+                    />
                 </div>
 
-                {/* Pending Shipments */}
-                <div className="card bg-base-200">
-                    <div className="card-body">
-                        <h2 className="card-title text-2xl mb-4">
-                            <Truck className="w-6 h-6 text-warning" />
-                            Pending Shipments
-                        </h2>
-                        <DataTable
-                            columns={shipmentColumns}
-                            data={tableData.pendingShipments}
-                            itemsPerPage={5}
-                            emptyMessage="No pending shipments"
-                            EmptyIcon={Truck}
-                        />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <LineChart
+                        data={chartData.userActivity}
+                        dataKeys={[{ key: 'users', name: 'New Users' }]}
+                        title="User Growth (Last 7 Days)"
+                        colors={['#8b5cf6']}
+                    />
+                    <PieChart
+                        data={chartData.ordersByStatus}
+                        title="Orders by Status"
+                        colors={['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b']}
+                    />
+                </div>
+
+                {/* Tables Section */}
+                <div className="grid grid-cols-1 gap-6">
+                    {/* Recent Users */}
+                    <div className="card bg-base-200">
+                        <div className="card-body">
+                            <h2 className="card-title text-2xl mb-4">
+                                <Users className="w-6 h-6" />
+                                Recent Users
+                            </h2>
+                            <DataTable
+                                columns={userColumns}
+                                data={tableData.recentUsers}
+                                itemsPerPage={5}
+                                emptyMessage="No users found"
+                                EmptyIcon={Users}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Recent Orders */}
+                    <div className="card bg-base-200">
+                        <div className="card-body">
+                            <h2 className="card-title text-2xl mb-4">
+                                <ShoppingCart className="w-6 h-6" />
+                                Recent Orders
+                            </h2>
+                            <DataTable
+                                columns={orderColumns}
+                                data={tableData.recentOrders}
+                                itemsPerPage={5}
+                                emptyMessage="No orders found"
+                                EmptyIcon={ShoppingCart}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Late Invoices */}
+                    <div className="card bg-base-200">
+                        <div className="card-body">
+                            <h2 className="card-title text-2xl mb-4">
+                                <FileText className="w-6 h-6 text-error" />
+                                Late Invoices
+                            </h2>
+                            <DataTable
+                                columns={invoiceColumns}
+                                data={tableData.lateInvoices}
+                                itemsPerPage={5}
+                                emptyMessage="No late invoices"
+                                EmptyIcon={FileText}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Pending Shipments */}
+                    <div className="card bg-base-200">
+                        <div className="card-body">
+                            <h2 className="card-title text-2xl mb-4">
+                                <Truck className="w-6 h-6 text-warning" />
+                                Pending Shipments
+                            </h2>
+                            <DataTable
+                                columns={shipmentColumns}
+                                data={tableData.pendingShipments}
+                                itemsPerPage={5}
+                                emptyMessage="No pending shipments"
+                                EmptyIcon={Truck}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </ProtectedRoute>
     )
 }
