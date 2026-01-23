@@ -234,15 +234,15 @@ export default function DashboardLayout({ children }) {
                         >
                             {!isCollapsed || window.innerWidth < 1024 ? (
                                 <div className="flex items-center gap-2">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 bg-linear-to-br from-primary to-secondary rounded-lg flex items-center justify-center shrink-0">
                                         <ShoppingBag className="w-6 h-6 text-white" />
                                     </div>
-                                    <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                                    <span className="text-xl font-bold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
                                         ShopHub
                                     </span>
                                 </div>
                             ) : (
-                                <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mx-auto">
+                                <div className="w-10 h-10 bg-linear-to-br from-primary to-secondary rounded-lg flex items-center justify-center mx-auto">
                                     <ShoppingBag className="w-6 h-6 text-white" />
                                 </div>
                             )}

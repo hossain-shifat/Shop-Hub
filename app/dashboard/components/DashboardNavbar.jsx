@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Bell, LogOut, User, Home, X, Settings, UserCircle, PanelRightClose } from 'lucide-react'
+import { Bell, LogOut, User, Home, X, Settings, UserCircle, PanelRightClose, Moon, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
@@ -10,6 +10,29 @@ import toast from 'react-hot-toast'
 import Loading from '../loading'
 import Image from 'next/image'
 import Link from 'next/link'
+import NotificationDropdown from '@/components/NotificationDropdown'
+
+
+function useTheme() {
+    const [theme, setTheme] = useState('light')
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+        const savedTheme = localStorage.getItem('theme') || 'light'
+        setTheme(savedTheme)
+        document.documentElement.setAttribute('data-theme', savedTheme)
+    }, [])
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light'
+        setTheme(newTheme)
+        localStorage.setItem('theme', newTheme)
+        document.documentElement.setAttribute('data-theme', newTheme)
+    }
+
+    return { theme, toggleTheme, mounted }
+}
 
 export default function DashboardNavbar({ notifications = [], isCollapsed, setIsCollapsed, setIsMobileSidebarOpen, isMobileSidebarOpen }) {
     const [showNotifications, setShowNotifications] = useState(false)
@@ -18,6 +41,7 @@ export default function DashboardNavbar({ notifications = [], isCollapsed, setIs
     const router = useRouter()
     const notifRef = useRef(null)
     const profileRef = useRef(null)
+    const { theme, toggleTheme, mounted } = useTheme()
 
     // Use the Firebase Auth hook to get user data
     const { user, userData, loading } = useFirebaseAuth()
@@ -70,72 +94,26 @@ export default function DashboardNavbar({ notifications = [], isCollapsed, setIs
                     <h2 className="text-lg font-bold text-base-content">Dashboard</h2>
                 </div>
 
-                {/* Right: Notifications & Profile */}
+                {/* Right: Notifications, Theme & Profile */}
                 <div className="flex items-center gap-2 md:gap-4">
+
                     {/* Notifications Bell */}
-                    <div className="relative" ref={notifRef}>
-                        <button
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className="btn btn-ghost btn-circle btn-sm relative hover:bg-base-200"
-                            aria-label="Notifications"
-                        >
-                            <Bell className="w-5 h-5" />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
+                    <NotificationDropdown />
 
-                        {showNotifications && (
-                            <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-base-100 rounded-xl shadow-2xl border border-base-300 overflow-hidden z-50">
-                                <div className="p-4 border-b border-base-300 flex items-center justify-between bg-base-200">
-                                    <h3 className="font-bold text-base">Notifications</h3>
-                                    <button
-                                        onClick={() => setShowNotifications(false)}
-                                        className="btn btn-ghost btn-xs btn-circle"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-
-                                <div className="max-h-96 overflow-y-auto">
-                                    {notifications.length === 0 ? (
-                                        <div className="p-8 text-center text-base-content/60">
-                                            <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                                            <p className="text-sm">No notifications</p>
-                                        </div>
-                                    ) : (
-                                        notifications.map((notif, idx) => (
-                                            <div
-                                                key={idx}
-                                                className={`p-4 border-b border-base-300 hover:bg-base-200 transition-colors cursor-pointer ${!notif.read ? 'bg-primary/5' : ''
-                                                    }`}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <div
-                                                        className={`w-2 h-2 rounded-full mt-2 shrink-0 ${notif.read ? 'bg-base-300' : 'bg-primary'
-                                                            }`}
-                                                    />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-semibold text-sm">
-                                                            {notif.title || 'Notification'}
-                                                        </p>
-                                                        <p className="text-xs text-base-content/70 mt-1 line-clamp-2">
-                                                            {notif.message}
-                                                        </p>
-                                                        <p className="text-xs text-base-content/50 mt-2">
-                                                            {notif.time || new Date(notif.createdAt).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
+                    {/* theme toggle btn */}
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2.5 rounded-lg bg-base-300 hover:bg-base-200 transition-all duration-200 group"
+                        aria-label="Toggle theme"
+                    >
+                        {mounted && (
+                            theme === 'light' ? (
+                                <Moon className="w-5 h-5 text-base-content group-hover:rotate-12 transition-transform" />
+                            ) : (
+                                <Sun className="w-5 h-5 text-base-content group-hover:rotate-45 transition-transform" />
+                            )
                         )}
-                    </div>
+                    </button>
 
                     {/* User Profile Dropdown */}
                     <div className="relative" ref={profileRef}>
