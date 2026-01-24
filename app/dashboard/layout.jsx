@@ -15,6 +15,7 @@ import {
     Plus,
     ShoppingBag,
     CreditCard,
+    Motorbike,
     ChevronLeft,
     ChevronRight,
     LogOut,
@@ -139,6 +140,11 @@ export default function DashboardLayout({ children }) {
                     name: 'My Products',
                     href: '/dashboard/seller/products',
                     icon: Package,
+                },
+                {
+                    name: 'Assign Riders',
+                    href: '/dashboard/seller/assign-rider',
+                    icon: Motorbike,
                 },
                 {
                     name: 'Orders',
