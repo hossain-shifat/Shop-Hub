@@ -1,75 +1,106 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
-const { verifyEmailConfig } = require('./utils/email')
-
+const cors = require('cors');
 
 const app = express();
 
 // Middleware
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
+
+// Special handling for Stripe webhooks (needs raw body)
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+// JSON middleware for other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection - Force ShopHub database name
+// MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
-    dbName: 'ShopHub'
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 })
-    .then(() => {
-        console.log('✅ MongoDB Connected Successfully');
-        console.log('📦 Database:', mongoose.connection.db.databaseName);
-    })
-    .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+    .then(() => console.log('✅ MongoDB Connected'))
+    .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
+// Import Routes
+const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders');
+const paymentRoutes = require('./routes/payments');
+const notificationRoutes = require('./routes/notifications');
 
-verifyEmailConfig().then(isValid => {
-    if (!isValid) {
-        console.warn('⚠️ Email configuration invalid - emails will not be sent');
-    }
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'ShopHub API is running',
+        timestamp: new Date().toISOString(),
+        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    });
 });
 
-
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/payments', require('./routes/payments'));
-
-// Health Check
-app.get('/health', (req, res) => {
+// Root endpoint
+app.get('/', (req, res) => {
     res.json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        database: mongoose.connection.db ? mongoose.connection.db.databaseName : 'not connected'
+        message: 'ShopHub API',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/auth',
+            products: '/api/products',
+            orders: '/api/orders',
+            payments: '/api/payments',
+            notifications: '/api/notifications',
+            health: '/api/health'
+        }
     });
 });
 
 // 404 Handler
 app.use((req, res) => {
     res.status(404).json({
-        error: 'Route not found',
-        path: req.path
+        success: false,
+        error: 'Endpoint not found',
+        path: req.path,
+        method: req.method
     });
 });
 
-// Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
+    console.error('❌ Server Error:', err);
     res.status(err.status || 500).json({
-        error: err.message || 'Internal Server Error',
+        success: false,
+        error: err.message || 'Internal server error',
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
 
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    mongoose.connection.close(() => {
+        console.log('MongoDB connection closed');
+        process.exit(0);
+    });
 });
 
 module.exports = app;

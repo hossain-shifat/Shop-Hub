@@ -3,9 +3,9 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const { generateInvoice } = require('../utils/invoice');
 const { sendOrderConfirmationEmail } = require('../utils/email');
-const User = require('../models/User');
 const NotificationService = require('../utils/notificationService');
 
 // Create Stripe Checkout Session
@@ -13,7 +13,6 @@ router.post('/create-checkout-session', async (req, res) => {
     try {
         const { orderId, items, shipping, tax, customerEmail } = req.body;
 
-        // Validate required fields
         if (!orderId || !items || !customerEmail) {
             return res.status(400).json({
                 success: false,
@@ -21,7 +20,6 @@ router.post('/create-checkout-session', async (req, res) => {
             });
         }
 
-        // Check if order exists
         const order = await Order.findOne({ orderId });
         if (!order) {
             return res.status(404).json({
@@ -30,7 +28,6 @@ router.post('/create-checkout-session', async (req, res) => {
             });
         }
 
-        // Check if payment already exists and is completed
         const existingPayment = await Payment.findOne({
             orderId,
             status: 'succeeded'
@@ -43,7 +40,6 @@ router.post('/create-checkout-session', async (req, res) => {
             });
         }
 
-        // Create line items for Stripe
         const lineItems = items.map(item => ({
             price_data: {
                 currency: 'usd',
@@ -51,40 +47,33 @@ router.post('/create-checkout-session', async (req, res) => {
                     name: item.name,
                     images: item.image ? [item.image] : [],
                 },
-                unit_amount: Math.round(item.price * 100), // Convert to cents
+                unit_amount: Math.round(item.price * 100),
             },
             quantity: item.quantity,
         }));
 
-        // Add shipping as a line item if applicable
         if (shipping > 0) {
             lineItems.push({
                 price_data: {
                     currency: 'usd',
-                    product_data: {
-                        name: 'Shipping',
-                    },
+                    product_data: { name: 'Shipping' },
                     unit_amount: Math.round(shipping * 100),
                 },
                 quantity: 1,
             });
         }
 
-        // Add tax as a line item
         if (tax > 0) {
             lineItems.push({
                 price_data: {
                     currency: 'usd',
-                    product_data: {
-                        name: 'Tax',
-                    },
+                    product_data: { name: 'Tax' },
                     unit_amount: Math.round(tax * 100),
                 },
                 quantity: 1,
             });
         }
 
-        // Create Checkout Session
         const session = await stripe.checkout.sessions.create({
             line_items: lineItems,
             mode: 'payment',
@@ -108,12 +97,11 @@ router.post('/create-checkout-session', async (req, res) => {
     }
 });
 
-// Verify Payment Success (called from success page)
+// Verify Payment Success (with notifications)
 router.post('/verify-session', async (req, res) => {
     try {
         const { sessionId, orderId } = req.body;
 
-        // Validate required fields
         if (!sessionId || !orderId) {
             return res.status(400).json({
                 success: false,
@@ -123,7 +111,6 @@ router.post('/verify-session', async (req, res) => {
 
         console.log('🔍 Verifying payment for session:', sessionId, 'order:', orderId);
 
-        // --- STEP 1: Retrieve Stripe session ---
         let session;
         try {
             session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -136,7 +123,6 @@ router.post('/verify-session', async (req, res) => {
             });
         }
 
-        // Check if payment was completed
         if (session.payment_status !== 'paid') {
             return res.status(400).json({
                 success: false,
@@ -144,7 +130,6 @@ router.post('/verify-session', async (req, res) => {
             });
         }
 
-        // --- STEP 2: Find the order ---
         const order = await Order.findOne({ orderId });
         if (!order) {
             return res.status(404).json({
@@ -153,13 +138,11 @@ router.post('/verify-session', async (req, res) => {
             });
         }
 
-        // --- STEP 3: Check if payment already exists (IDEMPOTENCY) ---
         let payment = await Payment.findOne({ orderId });
 
         if (payment) {
             console.log('⚠️ Payment already processed for order:', orderId);
 
-            // Update order if needed
             if (order.paymentStatus !== 'completed') {
                 order.paymentStatus = 'completed';
                 order.status = 'confirmed';
@@ -175,7 +158,6 @@ router.post('/verify-session', async (req, res) => {
             });
         }
 
-        // --- STEP 4: Create new payment record ---
         payment = new Payment({
             orderId,
             transactionId: session.payment_intent,
@@ -186,68 +168,49 @@ router.post('/verify-session', async (req, res) => {
         });
         await payment.save();
 
-        // --- STEP 5: Update order status ---
         order.paymentStatus = 'completed';
         order.status = 'confirmed';
         await order.save();
 
         console.log('✅ Payment verified successfully for order:', orderId);
 
-        // --- STEP 6: Send Notifications (after payment is created) ---
-        try {
-            await NotificationService.notifyPaymentSuccess(
-                order.userId,
-                order.orderId,
-                payment.amount
-            );
-
-            await NotificationService.notifyOrderConfirmed(
-                order.userId,
-                order.orderId
-            );
-            console.log('✅ Notifications sent successfully');
-        } catch (notifyError) {
-            console.error('⚠️ Notification sending failed:', notifyError);
-            // Continue - don't block response if notifications fail
-        }
-
-        // --- STEP 7: Generate Invoice ---
-        let invoicePDF;
-        try {
-            invoicePDF = await generateInvoice({ order, payment });
-            console.log('✅ Invoice generated successfully');
-        } catch (error) {
-            console.error('❌ Invoice generation failed:', error);
-            // Continue even if invoice fails - don't block the response
-        }
-
-        let userEmail;
-        try {
-            const user = await User.findOne({ uid: order.userId });
-            if (user && user.email) {
-                userEmail = user.email;
-            } else {
-                console.warn(`⚠️ User not found or no email for uid: ${order.userId}`);
+        // All post-payment tasks (notifications, invoice, email) run in background
+        setImmediate(async () => {
+            try {
+                // NOTIFICATIONS
+                await NotificationService.notifyPaymentSuccess(order.userId, payment, order);
+                await NotificationService.notifyOrderConfirmed(order.userId, order);
+                console.log('✅ Notifications sent');
+            } catch (notifError) {
+                console.error('❌ Notification error:', notifError);
             }
-        } catch (err) {
-            console.error('❌ Error fetching user for email:', err);
-        }
 
-        // --- STEP 8: Send Email (async, don't block response) ---
-        if (invoicePDF && userEmail) {
-            sendOrderConfirmationEmail({
-                customerEmail: userEmail,
-                order,
-                payment,
-                invoicePDF
-            }).then(() => {
-                console.log('✅ Email sent successfully to:', userEmail);
-            }).catch(error => {
-                console.error('❌ Email sending failed:', error);
-            });
-        }
+            // INVOICE GENERATION
+            let invoicePDF;
+            try {
+                invoicePDF = await generateInvoice({ order, payment });
+                console.log('✅ Invoice generated');
+            } catch (invoiceError) {
+                console.error('❌ Invoice generation failed:', invoiceError);
+            }
 
-        // --- STEP 9: Return success response ---
+            // EMAIL SENDING
+            try {
+                const user = await User.findOne({ uid: order.userId });
+                if (user && user.email && invoicePDF) {
+                    await sendOrderConfirmationEmail({
+                        customerEmail: user.email,
+                        order,
+                        payment,
+                        invoicePDF
+                    });
+                    console.log('✅ Email sent to:', user.email);
+                }
+            } catch (emailError) {
+                console.error('❌ Email sending failed:', emailError);
+            }
+        });
+
         res.status(200).json({
             success: true,
             payment,
@@ -265,7 +228,7 @@ router.post('/verify-session', async (req, res) => {
     }
 });
 
-// Handle payment cancellation
+// Handle payment cancellation (with notifications)
 router.post('/cancel-payment', async (req, res) => {
     try {
         const { orderId } = req.body;
@@ -277,14 +240,21 @@ router.post('/cancel-payment', async (req, res) => {
             });
         }
 
-        // Find and update order status
         const order = await Order.findOne({ orderId });
         if (order) {
-            // Only update if not already completed
             if (order.paymentStatus !== 'completed') {
                 order.paymentStatus = 'cancelled';
                 order.status = 'cancelled';
                 await order.save();
+
+                // NOTIFICATION: Order cancelled (non-blocking)
+                setImmediate(async () => {
+                    try {
+                        await NotificationService.notifyOrderCancelled(order.userId, order);
+                    } catch (notifError) {
+                        console.error('Notification error:', notifError);
+                    }
+                });
             }
         }
 
@@ -302,10 +272,9 @@ router.post('/cancel-payment', async (req, res) => {
     }
 });
 
-// Stripe Webhook (for production use)
+// Stripe Webhook
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
-
     let event;
 
     try {
@@ -319,7 +288,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the event
     try {
         switch (event.type) {
             case 'checkout.session.completed':
@@ -331,11 +299,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                     break;
                 }
 
-                // Check if payment already exists (prevent duplicates)
                 let payment = await Payment.findOne({ orderId });
 
                 if (!payment) {
-                    // Create payment record
                     payment = new Payment({
                         orderId,
                         transactionId: session.payment_intent,
@@ -347,35 +313,50 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                     await payment.save();
                 }
 
-                // Update order
                 const order = await Order.findOne({ orderId });
                 if (order && order.paymentStatus !== 'completed') {
                     order.paymentStatus = 'completed';
                     order.status = 'confirmed';
                     await order.save();
 
-                    // Send notifications
-                    try {
-                        await NotificationService.notifyPaymentSuccess(
-                            order.userId,
-                            order.orderId,
-                            payment.amount
-                        );
-
-                        await NotificationService.notifyOrderConfirmed(
-                            order.userId,
-                            order.orderId
-                        );
-                    } catch (notifyError) {
-                        console.error('⚠️ Webhook notification failed:', notifyError);
-                    }
+                    // Notifications (non-blocking)
+                    setImmediate(async () => {
+                        try {
+                            await NotificationService.notifyPaymentSuccess(order.userId, payment, order);
+                            await NotificationService.notifyOrderConfirmed(order.userId, order);
+                        } catch (notifError) {
+                            console.error('Webhook notification error:', notifError);
+                        }
+                    });
                 }
                 break;
 
             case 'payment_intent.payment_failed':
-                // Handle payment failure
                 const failedIntent = event.data.object;
                 console.log('Payment failed:', failedIntent.id);
+
+                // Non-blocking notification
+                setImmediate(async () => {
+                    try {
+                        const failedPayment = await Payment.findOne({
+                            transactionId: failedIntent.id
+                        });
+                        if (failedPayment) {
+                            const failedOrder = await Order.findOne({
+                                orderId: failedPayment.orderId
+                            });
+                            if (failedOrder) {
+                                await NotificationService.notifyPaymentFailed(
+                                    failedOrder.userId,
+                                    failedOrder.orderId,
+                                    failedIntent.last_payment_error?.message || 'Payment processing failed'
+                                );
+                            }
+                        }
+                    } catch (notifError) {
+                        console.error('Payment failed notification error:', notifError);
+                    }
+                });
                 break;
 
             default:
@@ -409,6 +390,7 @@ router.get('/order/:orderId', async (req, res) => {
     }
 });
 
+// Get all payments
 router.get('/', async (req, res) => {
     try {
         const payments = await Payment.find()

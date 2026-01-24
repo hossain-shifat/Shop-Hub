@@ -1,23 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
+const NotificationService = require('../utils/notificationService');
 
-// Get user notifications
+// Get all notifications for a user
 router.get('/user/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        const { limit = 50, unreadOnly = false } = req.query;
+        const { limit = 50, read } = req.query;
 
-        const query = { userId };
-        if (unreadOnly === 'true') {
-            query.read = false;
+        let query = { userId };
+
+        // Filter by read status if specified
+        if (read !== undefined) {
+            query.read = read === 'true';
         }
 
         const notifications = await Notification.find(query)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit));
 
-        const unreadCount = await Notification.getUnreadCount(userId);
+        const unreadCount = await Notification.countDocuments({
+            userId,
+            read: false
+        });
 
         res.status(200).json({
             success: true,
@@ -34,11 +40,11 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// Get unread count
-router.get('/user/:userId/count', async (req, res) => {
+// Get unread count for a user
+router.get('/user/:userId/unread-count', async (req, res) => {
     try {
         const { userId } = req.params;
-        const count = await Notification.getUnreadCount(userId);
+        const count = await NotificationService.getUnreadCount(userId);
 
         res.status(200).json({
             success: true,
@@ -53,48 +59,11 @@ router.get('/user/:userId/count', async (req, res) => {
     }
 });
 
-// Create notification
-router.post('/', async (req, res) => {
-    try {
-        const { userId, type, title, message, data, link, icon, priority } = req.body;
-
-        if (!userId || !type || !title || !message) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing required fields'
-            });
-        }
-
-        const notification = await Notification.createNotification({
-            userId,
-            type,
-            title,
-            message,
-            data,
-            link,
-            icon,
-            priority
-        });
-
-        console.log('Notification created:', notification._id);
-        res.status(201).json({
-            success: true,
-            notification
-        });
-    } catch (error) {
-        console.error('Create notification error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message || 'Failed to create notification'
-        });
-    }
-});
-
 // Mark notification as read
 router.patch('/:id/read', async (req, res) => {
     try {
         const { id } = req.params;
-        const notification = await Notification.findById(id);
+        const notification = await NotificationService.markAsRead(id);
 
         if (!notification) {
             return res.status(404).json({
@@ -102,8 +71,6 @@ router.patch('/:id/read', async (req, res) => {
                 error: 'Notification not found'
             });
         }
-
-        await notification.markAsRead();
 
         res.status(200).json({
             success: true,
@@ -118,15 +85,15 @@ router.patch('/:id/read', async (req, res) => {
     }
 });
 
-// Mark all notifications as read
+// Mark all notifications as read for a user
 router.patch('/user/:userId/read-all', async (req, res) => {
     try {
         const { userId } = req.params;
-        const count = await Notification.markAllAsRead(userId);
+        const count = await NotificationService.markAllAsRead(userId);
 
         res.status(200).json({
             success: true,
-            message: `${count} notifications marked as read`,
+            message: `Marked ${count} notifications as read`,
             count
         });
     } catch (error) {
@@ -138,11 +105,11 @@ router.patch('/user/:userId/read-all', async (req, res) => {
     }
 });
 
-// Delete notification
+// Delete a notification
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const notification = await Notification.findByIdAndDelete(id);
+        const notification = await NotificationService.deleteNotification(id);
 
         if (!notification) {
             return res.status(404).json({
@@ -153,7 +120,7 @@ router.delete('/:id', async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Notification deleted'
+            message: 'Notification deleted successfully'
         });
     } catch (error) {
         console.error('Delete notification error:', error);
@@ -164,22 +131,54 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Delete all read notifications for user
-router.delete('/user/:userId/clear-read', async (req, res) => {
+// Delete all notifications for a user
+router.delete('/user/:userId/all', async (req, res) => {
     try {
         const { userId } = req.params;
-        const result = await Notification.deleteMany({ userId, read: true });
+        const result = await NotificationService.deleteAllUserNotifications(userId);
 
         res.status(200).json({
             success: true,
-            message: `${result.deletedCount} notifications deleted`,
-            count: result.deletedCount
+            message: `Deleted ${result.deletedCount} notifications`,
+            deletedCount: result.deletedCount
         });
     } catch (error) {
-        console.error('Clear read notifications error:', error);
+        console.error('Delete all notifications error:', error);
         res.status(500).json({
             success: false,
-            error: error.message || 'Failed to clear notifications'
+            error: error.message || 'Failed to delete notifications'
+        });
+    }
+});
+
+// Create a test notification (for testing purposes)
+router.post('/test', async (req, res) => {
+    try {
+        const { userId, type = 'general', title, message } = req.body;
+
+        if (!userId || !title || !message) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId, title, and message are required'
+            });
+        }
+
+        const notification = await NotificationService.createNotification({
+            userId,
+            type,
+            title,
+            message
+        });
+
+        res.status(201).json({
+            success: true,
+            notification
+        });
+    } catch (error) {
+        console.error('Create test notification error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to create notification'
         });
     }
 });

@@ -1,16 +1,15 @@
-// backend/src/routes/orders.js
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const User = require('../models/User');
 const { v4: uuidv4 } = require('uuid');
 const NotificationService = require('../utils/notificationService');
 
-// Create order (with duplicate prevention)
+// Create order (with duplicate prevention and notifications)
 router.post('/', async (req, res) => {
     try {
         const { userId, items, paymentMethod } = req.body;
 
-        // Validate required fields
         if (!userId || !items || items.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -18,11 +17,9 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Generate unique order ID
         const orderId = `ORD-${uuidv4().slice(0, 8).toUpperCase()}`;
 
-        // IMPORTANT: Check for recent pending orders (within last 5 minutes)
-        // This prevents duplicate orders when payment is being processed
+        // Check for recent pending orders
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         const recentOrder = await Order.findOne({
             userId,
@@ -32,7 +29,6 @@ router.post('/', async (req, res) => {
         }).sort({ createdAt: -1 });
 
         if (recentOrder) {
-            // Compare items to check if it's truly a duplicate
             const itemsMatch = JSON.stringify(recentOrder.items.map(i => ({
                 productId: i.productId,
                 quantity: i.quantity
@@ -52,7 +48,7 @@ router.post('/', async (req, res) => {
             }
         }
 
-        // Create new order with ISO date
+        // Create new order
         const orderData = {
             ...req.body,
             orderId,
@@ -65,23 +61,24 @@ router.post('/', async (req, res) => {
         const order = new Order(orderData);
         await order.save();
 
-        // Send notification
-        await NotificationService.notifyOrderPlaced(
-            order.userId,
-            order.orderId,
-            order.total
-        );
-
-        // If seller exists, notify seller
-        if (order.sellerId) {
-            await NotificationService.notifyNewOrder(
-                order.sellerId,
-                order.orderId,
-                order.customerName,
-                order.total
-            );
-        }
         console.log('New order created:', orderId, 'Payment Status:', order.paymentStatus);
+
+        // NOTIFICATIONS (non-blocking)
+        setImmediate(async () => {
+            try {
+                // Order placed notification (for user)
+                await NotificationService.notifyOrderPlaced(userId, order);
+
+                // New order notification (for all admins)
+                const admins = await User.find({ role: 'admin' });
+                for (const admin of admins) {
+                    await NotificationService.notifyNewOrder(admin.uid, order);
+                }
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+            }
+        });
+
         res.status(201).json({ success: true, order });
     } catch (error) {
         console.error('Create order error:', error);
@@ -92,6 +89,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Get all orders
 router.get('/', async (req, res) => {
     try {
         const orders = await Order.find()
@@ -114,7 +112,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get user orders by userId (Firebase UID)
+// Get user orders by userId
 router.get('/user/:userId', async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.params.userId })
@@ -157,7 +155,7 @@ router.get('/:orderId', async (req, res) => {
     }
 });
 
-// Update order status
+// Update order status (with notifications)
 router.patch('/:orderId/status', async (req, res) => {
     try {
         const { status } = req.body;
@@ -169,8 +167,7 @@ router.patch('/:orderId/status', async (req, res) => {
             });
         }
 
-        // Validate status values
-        const validStatuses = ['processing', 'shipped', 'delivered', 'cancelled'];
+        const validStatuses = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({
                 success: false,
@@ -187,7 +184,6 @@ router.patch('/:orderId/status', async (req, res) => {
             });
         }
 
-        // Prevent updating completed/cancelled orders
         if (order.status === 'delivered' || order.status === 'cancelled') {
             return res.status(400).json({
                 success: false,
@@ -195,11 +191,30 @@ router.patch('/:orderId/status', async (req, res) => {
             });
         }
 
+        const oldStatus = order.status;
         order.status = status;
-        order.updatedAt = new Date().toISOString(); // Add ISO timestamp
+        order.updatedAt = new Date().toISOString();
         await order.save();
 
-        console.log('Order status updated:', order.orderId, 'to', status);
+        console.log('Order status updated:', order.orderId, 'from', oldStatus, 'to', status);
+
+        // NOTIFICATIONS based on status change (non-blocking)
+        setImmediate(async () => {
+            try {
+                if (status === 'confirmed') {
+                    await NotificationService.notifyOrderConfirmed(order.userId, order);
+                } else if (status === 'shipped') {
+                    await NotificationService.notifyOrderShipped(order.userId, order);
+                } else if (status === 'delivered') {
+                    await NotificationService.notifyOrderDelivered(order.userId, order);
+                } else if (status === 'cancelled') {
+                    await NotificationService.notifyOrderCancelled(order.userId, order);
+                }
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+            }
+        });
+
         res.status(200).json({ success: true, order });
     } catch (error) {
         console.error('Update order status error:', error);
@@ -210,7 +225,7 @@ router.patch('/:orderId/status', async (req, res) => {
     }
 });
 
-// Update payment status (called after successful payment)
+// Update payment status (with notifications)
 router.patch('/:orderId/payment-status', async (req, res) => {
     try {
         const { paymentStatus, transactionId } = req.body;
@@ -231,7 +246,6 @@ router.patch('/:orderId/payment-status', async (req, res) => {
             });
         }
 
-        // Only update if payment was pending
         if (order.paymentStatus === 'completed') {
             console.log('Payment already completed for order:', order.orderId);
             return res.status(200).json({
@@ -248,7 +262,7 @@ router.patch('/:orderId/payment-status', async (req, res) => {
         if (paymentStatus === 'completed') {
             order.status = 'confirmed';
         }
-        order.updatedAt = new Date().toISOString(); // Add ISO timestamp
+        order.updatedAt = new Date().toISOString();
 
         await order.save();
 
@@ -263,7 +277,7 @@ router.patch('/:orderId/payment-status', async (req, res) => {
     }
 });
 
-// Delete order (admin only - optional)
+// Delete order
 router.delete('/:orderId', async (req, res) => {
     try {
         const order = await Order.findOneAndDelete({ orderId: req.params.orderId });

@@ -1,273 +1,339 @@
 const Notification = require('../models/Notification');
 
 class NotificationService {
-    // Create notification helper
-    static async create(userId, type, title, message, options = {}) {
+    /**
+     * Create a notification for a user
+     * @param {Object} params - Notification parameters
+     * @param {String} params.userId - User ID to receive notification
+     * @param {String} params.type - Type of notification
+     * @param {String} params.title - Notification title
+     * @param {String} params.message - Notification message
+     * @param {Object} params.data - Additional data
+     * @param {String} params.link - Link to redirect
+     * @param {String} params.icon - Icon name
+     * @param {String} params.priority - Priority level
+     */
+    static async createNotification({
+        userId,
+        type,
+        title,
+        message,
+        data = {},
+        link = null,
+        icon = 'Bell',
+        priority = 'medium'
+    }) {
         try {
-            return await Notification.createNotification({
+            const notification = await Notification.create({
                 userId,
                 type,
                 title,
                 message,
-                data: options.data || {},
-                link: options.link || null,
-                icon: options.icon || 'Bell',
-                priority: options.priority || 'medium'
+                data,
+                link,
+                icon,
+                priority
             });
+
+            return notification;
         } catch (error) {
-            console.error('Notification service error:', error);
+            console.error('Error creating notification:', error);
             throw error;
         }
     }
 
-    // Order notifications
-    static async notifyOrderPlaced(userId, orderId, total) {
-        return this.create(
+    /**
+     * Create notification for order placed (User)
+     */
+    static async notifyOrderPlaced(userId, order) {
+        return this.createNotification({
             userId,
-            'order_placed',
-            'Order Placed Successfully',
-            `Your order #${orderId} for $${total.toFixed(2)} has been placed.`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'ShoppingBag',
-                priority: 'high',
-                data: { orderId, total }
-            }
-        );
+            type: 'order_placed',
+            title: 'Order Placed Successfully',
+            message: `Your order #${order.orderId} has been placed successfully. Total: $${order.total.toFixed(2)}`,
+            data: { orderId: order.orderId, total: order.total },
+            link: `/orders/${order.orderId}`,
+            icon: 'ShoppingBag',
+            priority: 'high'
+        });
     }
 
-    static async notifyOrderConfirmed(userId, orderId) {
-        return this.create(
+    /**
+     * Create notification for order confirmed (User)
+     */
+    static async notifyOrderConfirmed(userId, order) {
+        return this.createNotification({
             userId,
-            'order_confirmed',
-            'Order Confirmed',
-            `Your order #${orderId} has been confirmed and is being processed.`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'CheckCircle',
-                priority: 'high',
-                data: { orderId }
-            }
-        );
+            type: 'order_confirmed',
+            title: 'Order Confirmed',
+            message: `Your order #${order.orderId} has been confirmed and is being processed.`,
+            data: { orderId: order.orderId },
+            link: `/orders/${order.orderId}`,
+            icon: 'CheckCircle',
+            priority: 'high'
+        });
     }
 
-    static async notifyOrderShipped(userId, orderId, trackingNumber) {
-        return this.create(
+    /**
+     * Create notification for order shipped (User)
+     */
+    static async notifyOrderShipped(userId, order) {
+        return this.createNotification({
             userId,
-            'order_shipped',
-            'Order Shipped',
-            `Your order #${orderId} has been shipped. Tracking: ${trackingNumber || 'N/A'}`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'Truck',
-                priority: 'high',
-                data: { orderId, trackingNumber }
-            }
-        );
+            type: 'order_shipped',
+            title: 'Order Shipped',
+            message: `Your order #${order.orderId} has been shipped and is on its way!`,
+            data: { orderId: order.orderId },
+            link: `/orders/${order.orderId}`,
+            icon: 'Truck',
+            priority: 'high'
+        });
     }
 
-    static async notifyOrderDelivered(userId, orderId) {
-        return this.create(
+    /**
+     * Create notification for order delivered (User)
+     */
+    static async notifyOrderDelivered(userId, order) {
+        return this.createNotification({
             userId,
-            'order_delivered',
-            'Order Delivered',
-            `Your order #${orderId} has been delivered successfully!`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'Package',
-                priority: 'high',
-                data: { orderId }
-            }
-        );
+            type: 'order_delivered',
+            title: 'Order Delivered',
+            message: `Your order #${order.orderId} has been delivered successfully!`,
+            data: { orderId: order.orderId },
+            link: `/orders/${order.orderId}`,
+            icon: 'Package',
+            priority: 'high'
+        });
     }
 
-    static async notifyOrderCancelled(userId, orderId, reason) {
-        return this.create(
+    /**
+     * Create notification for order cancelled (User)
+     */
+    static async notifyOrderCancelled(userId, order) {
+        return this.createNotification({
             userId,
-            'order_cancelled',
-            'Order Cancelled',
-            `Your order #${orderId} has been cancelled. ${reason || ''}`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'XCircle',
-                priority: 'urgent',
-                data: { orderId, reason }
-            }
-        );
+            type: 'order_cancelled',
+            title: 'Order Cancelled',
+            message: `Your order #${order.orderId} has been cancelled.`,
+            data: { orderId: order.orderId },
+            link: `/orders/${order.orderId}`,
+            icon: 'XCircle',
+            priority: 'medium'
+        });
     }
 
-    // Payment notifications
-    static async notifyPaymentSuccess(userId, orderId, amount) {
-        return this.create(
+    /**
+     * Create notification for payment success (User)
+     */
+    static async notifyPaymentSuccess(userId, payment, order) {
+        return this.createNotification({
             userId,
-            'payment_success',
-            'Payment Successful',
-            `Payment of $${amount.toFixed(2)} for order #${orderId} was successful.`,
-            {
-                link: `/orders/${orderId}`,
-                icon: 'CreditCard',
-                priority: 'high',
-                data: { orderId, amount }
-            }
-        );
+            type: 'payment_success',
+            title: 'Payment Successful',
+            message: `Payment of $${payment.amount.toFixed(2)} received for order #${order.orderId}`,
+            data: {
+                orderId: order.orderId,
+                transactionId: payment.transactionId,
+                amount: payment.amount
+            },
+            link: `/orders/${order.orderId}`,
+            icon: 'CreditCard',
+            priority: 'high'
+        });
     }
 
-    static async notifyPaymentFailed(userId, orderId, reason) {
-        return this.create(
+    /**
+     * Create notification for payment failed (User)
+     */
+    static async notifyPaymentFailed(userId, orderId, reason = '') {
+        return this.createNotification({
             userId,
-            'payment_failed',
-            'Payment Failed',
-            `Payment for order #${orderId} failed. ${reason || 'Please try again.'}`,
-            {
-                link: `/checkout`,
-                icon: 'AlertCircle',
-                priority: 'urgent',
-                data: { orderId, reason }
-            }
-        );
+            type: 'payment_failed',
+            title: 'Payment Failed',
+            message: `Payment for order #${orderId} failed. ${reason}`,
+            data: { orderId, reason },
+            link: `/checkout?orderId=${orderId}`,
+            icon: 'AlertCircle',
+            priority: 'urgent'
+        });
     }
 
-    // Account notifications
-    static async notifyAccountCreated(userId, displayName) {
-        return this.create(
+    /**
+     * Create notification for new order (Seller/Admin)
+     */
+    static async notifyNewOrder(userId, order) {
+        return this.createNotification({
             userId,
-            'account_created',
-            'Welcome to ShopHub!',
-            `Welcome ${displayName}! Your account has been created successfully.`,
-            {
-                link: '/profile',
-                icon: 'UserCheck',
-                priority: 'medium'
-            }
-        );
+            type: 'new_order',
+            title: 'New Order Received',
+            message: `New order #${order.orderId} received. Total: $${order.total.toFixed(2)}`,
+            data: { orderId: order.orderId, total: order.total },
+            link: `/dashboard/admin/orders`,
+            icon: 'ShoppingCart',
+            priority: 'high'
+        });
     }
 
-    static async notifyPasswordChanged(userId) {
-        return this.create(
+    /**
+     * Create notification for product approved (Seller)
+     */
+    static async notifyProductApproved(userId, product) {
+        return this.createNotification({
             userId,
-            'password_changed',
-            'Password Changed',
-            'Your password has been changed successfully. If this wasn\'t you, contact support immediately.',
-            {
-                link: '/settings',
-                icon: 'Lock',
-                priority: 'urgent'
-            }
-        );
+            type: 'product_approved',
+            title: 'Product Approved',
+            message: `Your product "${product.name}" has been approved and is now live.`,
+            data: { productId: product._id || product.id },
+            link: `/products/${product._id || product.id}`,
+            icon: 'CheckCircle',
+            priority: 'medium'
+        });
     }
 
+    /**
+     * Create notification for product rejected (Seller)
+     */
+    static async notifyProductRejected(userId, product, reason) {
+        return this.createNotification({
+            userId,
+            type: 'product_rejected',
+            title: 'Product Rejected',
+            message: `Your product "${product.name}" was rejected. Reason: ${reason}`,
+            data: { productId: product._id || product.id, reason },
+            link: `/dashboard/seller/products`,
+            icon: 'XCircle',
+            priority: 'high'
+        });
+    }
+
+    /**
+     * Create notification for new review (Seller)
+     */
+    static async notifyNewReview(userId, product, review) {
+        return this.createNotification({
+            userId,
+            type: 'new_review',
+            title: 'New Product Review',
+            message: `${review.userName} left a ${review.rating}-star review on "${product.name}"`,
+            data: {
+                productId: product._id || product.id,
+                reviewId: review._id,
+                rating: review.rating
+            },
+            link: `/products/${product._id || product.id}`,
+            icon: 'Star',
+            priority: 'low'
+        });
+    }
+
+    /**
+     * Create notification for low stock (Seller/Admin)
+     */
+    static async notifyLowStock(userId, product) {
+        return this.createNotification({
+            userId,
+            type: 'low_stock',
+            title: 'Low Stock Alert',
+            message: `Product "${product.name}" is running low on stock (${product.stock} remaining)`,
+            data: { productId: product._id || product.id, stock: product.stock },
+            link: `/dashboard/seller/products`,
+            icon: 'AlertTriangle',
+            priority: 'medium'
+        });
+    }
+
+    /**
+     * Create notification for user registration (Admin)
+     */
+    static async notifyUserRegistered(adminUserId, user) {
+        return this.createNotification({
+            userId: adminUserId,
+            type: 'user_registered',
+            title: 'New User Registered',
+            message: `${user.displayName} (${user.email}) registered as ${user.role}`,
+            data: { userId: user.uid, email: user.email, role: user.role },
+            link: `/dashboard/admin/users`,
+            icon: 'UserPlus',
+            priority: 'low'
+        });
+    }
+
+    /**
+     * Create notification for account created (User)
+     */
+    static async notifyAccountCreated(userId, user) {
+        return this.createNotification({
+            userId,
+            type: 'account_created',
+            title: 'Welcome to ShopHub!',
+            message: `Your account has been created successfully. Start shopping now!`,
+            data: { email: user.email },
+            link: '/products',
+            icon: 'UserCheck',
+            priority: 'medium'
+        });
+    }
+
+    /**
+     * Create notification for profile updated (User)
+     */
     static async notifyProfileUpdated(userId) {
-        return this.create(
+        return this.createNotification({
             userId,
-            'profile_updated',
-            'Profile Updated',
-            'Your profile information has been updated successfully.',
-            {
-                link: '/profile',
-                icon: 'User',
-                priority: 'low'
-            }
-        );
+            type: 'profile_updated',
+            title: 'Profile Updated',
+            message: 'Your profile has been updated successfully.',
+            data: {},
+            link: '/profile',
+            icon: 'User',
+            priority: 'low'
+        });
     }
 
-    // Seller notifications
-    static async notifyNewOrder(sellerId, orderId, buyerName, total) {
-        return this.create(
-            sellerId,
-            'new_order',
-            'New Order Received',
-            `You have a new order #${orderId} from ${buyerName} for $${total.toFixed(2)}.`,
-            {
-                link: `/dashboard/seller/orders/${orderId}`,
-                icon: 'ShoppingCart',
-                priority: 'urgent',
-                data: { orderId, buyerName, total }
-            }
-        );
+    /**
+     * Get notifications for a specific user
+     */
+    static async getUserNotifications(userId, limit = 50) {
+        return Notification.getUserNotifications(userId, limit);
     }
 
-    static async notifyLowStock(sellerId, productId, productName, stock) {
-        return this.create(
-            sellerId,
-            'low_stock',
-            'Low Stock Alert',
-            `Product "${productName}" is low on stock (${stock} remaining).`,
-            {
-                link: `/dashboard/seller/products/${productId}`,
-                icon: 'AlertTriangle',
-                priority: 'high',
-                data: { productId, productName, stock }
-            }
-        );
+    /**
+     * Get unread count for a user
+     */
+    static async getUnreadCount(userId) {
+        return Notification.getUnreadCount(userId);
     }
 
-    static async notifyProductApproved(sellerId, productId, productName) {
-        return this.create(
-            sellerId,
-            'product_approved',
-            'Product Approved',
-            `Your product "${productName}" has been approved and is now live.`,
-            {
-                link: `/products/${productId}`,
-                icon: 'CheckCircle',
-                priority: 'medium',
-                data: { productId, productName }
-            }
-        );
+    /**
+     * Mark notification as read
+     */
+    static async markAsRead(notificationId) {
+        const notification = await Notification.findById(notificationId);
+        if (notification) {
+            return notification.markAsRead();
+        }
+        return null;
     }
 
-    static async notifyProductRejected(sellerId, productId, productName, reason) {
-        return this.create(
-            sellerId,
-            'product_rejected',
-            'Product Rejected',
-            `Your product "${productName}" was rejected. Reason: ${reason}`,
-            {
-                link: `/dashboard/seller/products/${productId}`,
-                icon: 'XCircle',
-                priority: 'high',
-                data: { productId, productName, reason }
-            }
-        );
+    /**
+     * Mark all notifications as read for a user
+     */
+    static async markAllAsRead(userId) {
+        return Notification.markAllAsRead(userId);
     }
 
-    static async notifyNewReview(sellerId, productId, productName, rating) {
-        return this.create(
-            sellerId,
-            'new_review',
-            'New Product Review',
-            `Your product "${productName}" received a ${rating}-star review.`,
-            {
-                link: `/products/${productId}`,
-                icon: 'Star',
-                priority: 'medium',
-                data: { productId, productName, rating }
-            }
-        );
+    /**
+     * Delete notification
+     */
+    static async deleteNotification(notificationId) {
+        return Notification.findByIdAndDelete(notificationId);
     }
 
-    // Admin notifications
-    static async notifyUserRegistered(adminId, userName, userEmail) {
-        return this.create(
-            adminId,
-            'user_registered',
-            'New User Registration',
-            `${userName} (${userEmail}) has registered.`,
-            {
-                link: '/dashboard/admin/users',
-                icon: 'UserPlus',
-                priority: 'low',
-                data: { userName, userEmail }
-            }
-        );
-    }
-
-    // Bulk notifications
-    static async notifyMultipleUsers(userIds, type, title, message, options = {}) {
-        const promises = userIds.map(userId =>
-            this.create(userId, type, title, message, options)
-        );
-        return Promise.all(promises);
+    /**
+     * Delete all notifications for a user
+     */
+    static async deleteAllUserNotifications(userId) {
+        return Notification.deleteMany({ userId });
     }
 }
 

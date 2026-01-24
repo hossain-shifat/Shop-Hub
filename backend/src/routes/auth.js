@@ -1,15 +1,13 @@
-// backend/src/routes/auth.js (EXTENDED VERSION)
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const NotificationService = require('../utils/notificationService');
 
-// Register or update user from Firebase (with duplicate prevention)
+// Register or update user from Firebase (with duplicate prevention and notifications)
 router.post('/register', async (req, res) => {
     try {
         const { uid, email, displayName, photoURL, role, provider } = req.body;
 
-        // Validate required fields
         if (!uid || !email) {
             return res.status(400).json({
                 success: false,
@@ -17,8 +15,8 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        // Check if user already exists
         let user = await User.findOne({ uid });
+        let isNewUser = false;
 
         if (user) {
             // Update existing user (only if data has changed)
@@ -37,6 +35,15 @@ router.post('/register', async (req, res) => {
             if (hasChanges) {
                 await user.save();
                 console.log('User updated:', uid);
+
+                // NOTIFICATION: Profile updated (non-blocking)
+                setImmediate(async () => {
+                    try {
+                        await NotificationService.notifyProfileUpdated(uid);
+                    } catch (notifError) {
+                        console.error('Notification error:', notifError);
+                    }
+                });
             } else {
                 console.log('User exists, no changes:', uid);
             }
@@ -51,21 +58,34 @@ router.post('/register', async (req, res) => {
                 provider: provider || 'email'
             });
             await user.save();
+            isNewUser = true;
             console.log('New user created:', uid);
+
+            // NOTIFICATIONS (non-blocking)
+            setImmediate(async () => {
+                try {
+                    // Account created notification
+                    await NotificationService.notifyAccountCreated(uid, user);
+
+                    // Notify admins of new user registration
+                    const admins = await User.find({ role: 'admin' });
+                    for (const admin of admins) {
+                        await NotificationService.notifyUserRegistered(admin.uid, user);
+                    }
+                } catch (notifError) {
+                    console.error('Notification error:', notifError);
+                }
+            });
         }
 
-        if (!user) {
-            await NotificationService.notifyAccountCreated(
-                user.uid,
-                user.displayName
-            );
-        }
-
-        res.status(200).json({ success: true, user });
+        res.status(200).json({
+            success: true,
+            user,
+            isNewUser
+        });
     } catch (error) {
         console.error('Register/update user error:', error);
 
-        // Handle duplicate key error (if email is unique in schema)
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
@@ -100,7 +120,7 @@ router.get('/user/:uid', async (req, res) => {
     }
 });
 
-// Get user by email (optional endpoint)
+// Get user by email
 router.get('/user-by-email/:email', async (req, res) => {
     try {
         const user = await User.findOne({ email: req.params.email });
@@ -119,8 +139,6 @@ router.get('/user-by-email/:email', async (req, res) => {
         });
     }
 });
-
-// ========== NEW ENDPOINTS FOR DASHBOARD ==========
 
 // Get all users (Admin only)
 router.get('/users', async (req, res) => {
@@ -250,15 +268,12 @@ router.get('/users/:uid/stats', async (req, res) => {
             });
         }
 
-        // You can extend this to include order counts, spending, etc.
-        // by querying the Orders collection
         const stats = {
             uid: user.uid,
             displayName: user.displayName,
             email: user.email,
             role: user.role,
             joinedDate: user.createdAt,
-            // Add more stats as needed
         };
 
         res.status(200).json({ success: true, stats });

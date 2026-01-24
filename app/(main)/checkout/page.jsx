@@ -199,7 +199,7 @@ export default function CheckoutPage() {
 
     if (cartItems.length === 0) {
         return (
-            <div className="min-h-screen pt-20">
+            <div className="min-h-screen">
                 <div className="section-padding">
                     <div className="container-custom max-w-md mx-auto text-center">
                         <Package className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen pt-20">
+        <div className="min-h-screen">
             <div className="section-padding">
                 <div className="container-custom max-w-6xl">
                     <Link

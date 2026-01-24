@@ -1,7 +1,8 @@
-// backend/src/routes/products.js
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const User = require('../models/User');
+const NotificationService = require('../utils/notificationService');
 
 // Get all products with filters
 router.get('/', async (req, res) => {
@@ -9,12 +10,10 @@ router.get('/', async (req, res) => {
         const { category, search, minPrice, maxPrice, sort } = req.query;
         let query = {};
 
-        // Category filter
         if (category && category !== 'all') {
             query.category = category;
         }
 
-        // Search filter
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -22,15 +21,13 @@ router.get('/', async (req, res) => {
             ];
         }
 
-        // Price range filter
         if (minPrice || maxPrice) {
             query.price = {};
             if (minPrice) query.price.$gte = parseFloat(minPrice);
             if (maxPrice) query.price.$lte = parseFloat(maxPrice);
         }
 
-        // Build sort object
-        let sortObj = { createdAt: -1 }; // Default: newest first
+        let sortObj = { createdAt: -1 };
         if (sort === 'price-asc') sortObj = { price: 1 };
         if (sort === 'price-desc') sortObj = { price: -1 };
         if (sort === 'rating') sortObj = { rating: -1 };
@@ -52,17 +49,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get single product by ID (supports both custom 'id' and MongoDB '_id')
+// Get single product by ID
 router.get('/:id', async (req, res) => {
     try {
         const productId = req.params.id;
         let product;
 
-        // Try to find by custom 'id' field first
         product = await Product.findOne({ id: productId })
             .populate('reviews.userId', 'displayName photoURL');
 
-        // If not found, try MongoDB _id (for ObjectId format)
         if (!product && productId.match(/^[0-9a-fA-F]{24}$/)) {
             product = await Product.findById(productId)
                 .populate('reviews.userId', 'displayName photoURL');
@@ -85,12 +80,11 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Create product (seller only)
+// Create product (with notifications)
 router.post('/', async (req, res) => {
     try {
-        const { name, price, category } = req.body;
+        const { name, price, category, userId, sellerEmail, sellerName } = req.body;
 
-        // Validate required fields
         if (!name || !price || !category) {
             return res.status(400).json({
                 success: false,
@@ -98,7 +92,6 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Check for duplicate product
         const existingProduct = await Product.findOne({
             name: { $regex: new RegExp(`^${name}$`, 'i') },
             category
@@ -111,7 +104,6 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Generate unique product ID
         const productId = `PROD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
         const product = new Product({
@@ -122,6 +114,36 @@ router.post('/', async (req, res) => {
         });
 
         await product.save();
+
+        // NOTIFICATION: Product approval (for seller - if auto-approved)
+        // In a real scenario, products might need admin approval
+        // For now, we'll notify on creation
+        if (userId) {
+            try {
+                await NotificationService.notifyProductApproved(userId, product);
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+            }
+        }
+
+        // NOTIFICATION: New product (for admins)
+        try {
+            const admins = await User.find({ role: 'admin' });
+            for (const admin of admins) {
+                await NotificationService.createNotification({
+                    userId: admin.uid,
+                    type: 'general',
+                    title: 'New Product Added',
+                    message: `New product "${product.name}" added by ${sellerName || 'seller'}`,
+                    data: { productId: product._id },
+                    link: `/dashboard/admin/products`,
+                    icon: 'Package',
+                    priority: 'low'
+                });
+            }
+        } catch (notifError) {
+            console.error('Admin notification error:', notifError);
+        }
 
         console.log('New product created:', productId);
         res.status(201).json({ success: true, product });
@@ -148,10 +170,8 @@ router.patch('/:id', async (req, res) => {
         const productId = req.params.id;
         let product;
 
-        // Try custom id first
         product = await Product.findOne({ id: productId });
 
-        // If not found, try MongoDB _id
         if (!product && productId.match(/^[0-9a-fA-F]{24}$/)) {
             product = await Product.findById(productId);
         }
@@ -163,7 +183,6 @@ router.patch('/:id', async (req, res) => {
             });
         }
 
-        // Update fields (exclude id and reviews)
         const allowedUpdates = ['name', 'description', 'price', 'image', 'category', 'stock', 'features', 'specifications'];
         allowedUpdates.forEach(field => {
             if (req.body[field] !== undefined) {
@@ -172,6 +191,15 @@ router.patch('/:id', async (req, res) => {
         });
 
         await product.save();
+
+        // NOTIFICATION: Low stock alert (if stock is low)
+        if (product.stock <= 10 && product.userId) {
+            try {
+                await NotificationService.notifyLowStock(product.userId, product);
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+            }
+        }
 
         console.log('Product updated:', product.id || product._id);
         res.status(200).json({ success: true, product });
@@ -184,12 +212,11 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-// Add review
+// Add review (with notifications)
 router.post('/:id/reviews', async (req, res) => {
     try {
         const { userId, userName, userPhoto, rating, comment } = req.body;
 
-        // Validate required fields
         if (!userId || !rating) {
             return res.status(400).json({
                 success: false,
@@ -207,10 +234,8 @@ router.post('/:id/reviews', async (req, res) => {
         const productId = req.params.id;
         let product;
 
-        // Try custom id first
         product = await Product.findOne({ id: productId });
 
-        // If not found, try MongoDB _id
         if (!product && productId.match(/^[0-9a-fA-F]{24}$/)) {
             product = await Product.findById(productId);
         }
@@ -222,7 +247,6 @@ router.post('/:id/reviews', async (req, res) => {
             });
         }
 
-        // Check if user already reviewed (prevent duplicates)
         const existingReview = product.reviews.find(
             review => review.userId.toString() === userId.toString()
         );
@@ -234,7 +258,6 @@ router.post('/:id/reviews', async (req, res) => {
             });
         }
 
-        // Add new review
         const review = {
             userId,
             userName: userName || 'Anonymous',
@@ -253,6 +276,15 @@ router.post('/:id/reviews', async (req, res) => {
 
         await product.save();
 
+        // NOTIFICATION: New review (for product seller)
+        if (product.userId && product.userId !== userId) {
+            try {
+                await NotificationService.notifyNewReview(product.userId, product, review);
+            } catch (notifError) {
+                console.error('Notification error:', notifError);
+            }
+        }
+
         console.log('Review added to product:', product.id || product._id);
         res.status(200).json({ success: true, product });
     } catch (error) {
@@ -264,16 +296,14 @@ router.post('/:id/reviews', async (req, res) => {
     }
 });
 
-// Delete product (admin only)
+// Delete product
 router.delete('/:id', async (req, res) => {
     try {
         const productId = req.params.id;
         let product;
 
-        // Try custom id first
         product = await Product.findOneAndDelete({ id: productId });
 
-        // If not found, try MongoDB _id
         if (!product && productId.match(/^[0-9a-fA-F]{24}$/)) {
             product = await Product.findByIdAndDelete(productId);
         }

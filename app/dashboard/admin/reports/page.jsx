@@ -33,17 +33,27 @@ export default function AdminReports() {
                 fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments`)
             ])
 
-            const orders = await ordersRes.json()
-            const users = await usersRes.json()
-            const products = await productsRes.json()
-            const payments = await paymentsRes.json()
+            const ordersData = await ordersRes.json()
+            const usersData = await usersRes.json()
+            const productsData = await productsRes.json()
+            const paymentsData = await paymentsRes.json()
+
+            const orders = ordersData.orders || []
+            const users = usersData.users || []
+            const products = productsData.products || []
+            const payments = paymentsData.payments || []
+
+            // Calculate total revenue from payments (same logic as dashboard)
+            const totalRevenue = payments
+                .filter(p => p.status === 'succeeded')
+                .reduce((sum, p) => sum + p.amount, 0)
 
             setStats({
-                totalOrders: orders.count || 0,
-                totalUsers: users.count || 0,
-                totalProducts: products.count || 0,
-                totalRevenue: payments.totalRevenue || 0,
-                totalTransactions: payments.count || 0
+                totalOrders: orders.length,
+                totalUsers: users.length,
+                totalProducts: products.length,
+                totalRevenue: totalRevenue,
+                totalTransactions: payments.length
             })
         } catch (error) {
             console.error('Error fetching stats:', error)
@@ -340,7 +350,7 @@ export default function AdminReports() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-white/80 text-sm font-semibold">Total Revenue</p>
-                                    <p className="text-3xl font-bold">${stats.totalRevenue.toLocaleString()}</p>
+                                    <p className="text-3xl font-bold">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <DollarSign className="w-12 h-12 text-white/50" />
                             </div>
