@@ -6,6 +6,7 @@ import { DollarSign, TrendingUp, Package, Star, Calendar, MapPin } from 'lucide-
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
 import DataTable from '@/app/dashboard/components/DataTable'
 import toast from 'react-hot-toast'
+import Loading from '../../loading'
 
 export default function RiderIncomePage() {
     const { user } = useFirebaseAuth()
@@ -126,14 +127,7 @@ export default function RiderIncomePage() {
     ]
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-base-content/70">Loading earnings data...</p>
-                </div>
-            </div>
-        )
+        return <Loading />
     }
 
     return (
@@ -155,7 +149,7 @@ export default function RiderIncomePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="card bg-gradient-to-br from-success/10 to-success/5 border-2 border-success/20"
+                    className="card bg-linear-to-br from-success/10 to-success/5 border-2 border-success/20"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -176,7 +170,7 @@ export default function RiderIncomePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="card bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20"
+                    className="card bg-linear-to-br from-primary/10 to-primary/5 border-2 border-primary/20"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -197,7 +191,7 @@ export default function RiderIncomePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="card bg-gradient-to-br from-secondary/10 to-secondary/5 border-2 border-secondary/20"
+                    className="card bg-linear-to-br from-secondary/10 to-secondary/5 border-2 border-secondary/20"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -218,7 +212,7 @@ export default function RiderIncomePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="card bg-gradient-to-br from-warning/10 to-warning/5 border-2 border-warning/20"
+                    className="card bg-linear-to-br from-warning/10 to-warning/5 border-2 border-warning/20"
                 >
                     <div className="flex items-center justify-between">
                         <div>

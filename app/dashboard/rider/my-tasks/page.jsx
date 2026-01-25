@@ -6,6 +6,7 @@ import { Package, MapPin, Phone, DollarSign, CheckCircle, XCircle, Eye, X, Clock
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
 import toast from 'react-hot-toast'
 import DataTable from '../../components/DataTable'
+import Loading from '../../loading'
 
 export default function RiderMyTasksPage() {
     const { user } = useFirebaseAuth()
@@ -261,14 +262,7 @@ export default function RiderMyTasksPage() {
     ]
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <Loader className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-                    <p className="text-base-content/70 font-semibold">Loading your tasks...</p>
-                </div>
-            </div>
-        )
+        return <Loading />
     }
 
     return (
@@ -302,8 +296,8 @@ export default function RiderMyTasksPage() {
                         key={tab.value}
                         onClick={() => setFilter(tab.value)}
                         className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${filter === tab.value
-                                ? 'bg-gradient-to-r from-primary to-secondary text-primary-content'
-                                : 'bg-base-200 text-base-content hover:bg-base-300'
+                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content'
+                            : 'bg-base-200 text-base-content hover:bg-base-300'
                             }`}
                     >
                         {tab.label}
@@ -326,7 +320,7 @@ export default function RiderMyTasksPage() {
                             className="bg-base-100 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                         >
                             {/* Modal Header */}
-                            <div className="sticky top-0 bg-gradient-to-r from-primary to-secondary p-6 flex justify-between items-center">
+                            <div className="sticky top-0 bg-linear-to-r from-primary to-secondary p-6 flex justify-between items-center">
                                 <h2 className="text-2xl font-bold text-primary-content">
                                     Order Details
                                 </h2>
