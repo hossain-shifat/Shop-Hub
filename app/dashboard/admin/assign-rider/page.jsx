@@ -315,7 +315,7 @@ export default function AssignRiderPage() {
                     <DataTable
                         data={orders}
                         columns={orderColumns}
-                        itemsPerPage={10}
+                        itemsPerPage={5}
                         emptyMessage="No orders pending assignment"
                         EmptyIcon={Package}
                     />

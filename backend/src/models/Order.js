@@ -6,20 +6,9 @@ const orderSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    trackingId: {
-        type: String,
-        required: true,
-        unique: true
-    },
     userId: {
         type: String,
         required: true
-    },
-    // Buyer Contact Info
-    buyerInfo: {
-        name: String,
-        email: String,
-        phoneNumber: String
     },
     items: [{
         productId: {
@@ -46,55 +35,66 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['processing', 'confirmed', 'assigned', 'collected', 'in_transit', 'out_for_delivery', 'delivered', 'cancelled'],
+        enum: ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'],
         default: 'processing'
     },
-    // Rider Assignment
+    // Tracking and Rider Assignment
+    trackingId: {
+        type: String,
+        required: true,
+        unique: true,
+        default: function () {
+            return `TRK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+        }
+    },
     riderId: {
         type: String,
         default: null
     },
     riderInfo: {
         name: String,
-        phoneNumber: String,
+        phone: String,
         vehicleType: String,
-        vehicleNumber: String
+        vehicleNumber: String,
+        rating: Number
     },
-    assignedBy: {
-        userId: String,
-        userName: String,
-        role: String // 'seller' or 'admin'
+    riderStatus: {
+        type: String,
+        enum: ['pending', 'accepted', 'rejected', 'picked_up', 'in_transit', 'delivered'],
+        default: 'pending'
     },
-    assignedAt: {
+    riderAssignedAt: {
         type: Date,
         default: null
     },
-    // Delivery Timeline
-    timeline: [{
-        status: String,
-        timestamp: Date,
-        location: String,
-        note: String
-    }],
-    estimatedDelivery: {
+    riderAcceptedAt: {
         type: Date,
         default: null
     },
-    actualDelivery: {
+    pickedUpAt: {
         type: Date,
         default: null
     },
+    deliveredAt: {
+        type: Date,
+        default: null
+    },
+    // Financials
     subtotal: Number,
     shipping: Number,
     tax: Number,
     total: Number,
+    deliveryFee: {
+        type: Number,
+        default: 0
+    },
     transactionId: String
 }, { timestamps: true });
 
 // Generate tracking ID before saving
 orderSchema.pre('save', function (next) {
     if (!this.trackingId) {
-        this.trackingId = `TRK${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        this.trackingId = `TRK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
     }
     next();
 });

@@ -34,28 +34,17 @@ const userSchema = new mongoose.Schema({
         enum: ['google', 'email'],
         required: true
     },
-    // Rider-specific fields
+    // Rider-specific information
     riderInfo: {
         vehicleType: {
             type: String,
-            enum: ['bike', 'car', 'van', 'bicycle'],
-            default: null
+            enum: ['bike', 'bicycle', 'car', 'van']
         },
-        vehicleNumber: {
-            type: String,
-            default: null
-        },
-        licenseNumber: {
-            type: String,
-            default: null
-        },
+        vehicleNumber: String,
+        licenseNumber: String,
         isAvailable: {
             type: Boolean,
             default: true
-        },
-        currentLocation: {
-            latitude: Number,
-            longitude: Number
         },
         completedDeliveries: {
             type: Number,
@@ -63,7 +52,19 @@ const userSchema = new mongoose.Schema({
         },
         rating: {
             type: Number,
-            default: 5.0
+            default: 5.0,
+            min: 0,
+            max: 5
+        },
+        earnings: {
+            type: Number,
+            default: 0
+        },
+        address: {
+            division: String,
+            district: String,
+            area: String,
+            street: String
         }
     }
 }, { timestamps: true });

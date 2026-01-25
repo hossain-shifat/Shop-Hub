@@ -59,6 +59,8 @@ export default function Navbar() {
                 return '/dashboard/admin'
             case 'seller':
                 return '/dashboard/seller'
+            case 'rider':
+                return '/dashboard/rider'
             default:
                 return '/dashboard/user'
         }
@@ -207,7 +209,7 @@ export default function Navbar() {
 
                         {/* Notifications Bell */}
                         <NotificationDropdown />
-                        
+
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
