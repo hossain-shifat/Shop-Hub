@@ -621,7 +621,7 @@ export default function UserManagement() {
                         <DataTable
                             columns={userColumns}
                             data={filteredUsers}
-                            itemsPerPage={10}
+                            itemsPerPage={5}
                             emptyMessage="No users found"
                             EmptyIcon={UserCog}
                         />
@@ -671,7 +671,7 @@ export default function UserManagement() {
                         <DataTable
                             columns={riderColumns}
                             data={getCurrentRiders()}
-                            itemsPerPage={10}
+                            itemsPerPage={5}
                             emptyMessage={
                                 riderVerificationTab === 'unverified'
                                     ? 'No pending verifications'

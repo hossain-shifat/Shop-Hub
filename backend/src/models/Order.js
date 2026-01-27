@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'],
+        enum: ['processing', 'confirmed', 'shipped', 'picked_up', 'delivered', 'cancelled'],
         default: 'processing'
     },
     // Tracking and Rider Assignment
