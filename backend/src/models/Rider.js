@@ -91,10 +91,13 @@ const riderSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    earnings: {
-        type: Number,
-        default: 0
-    },
+    // Earnings History Structure
+    earningsHistory: [{
+        orderId: String,
+        amount: Number,
+        date: Date,
+        status: 'pending' | 'completed' | 'withdrawn'
+    }],
     // Current Assignment
     currentOrderId: {
         type: String,
