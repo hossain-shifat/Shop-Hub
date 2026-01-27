@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Bike, MapPin, FileText, Truck, ArrowRight, AlertCircle } from 'lucide-react'
+import { Bike, MapPin, FileText, Truck, ArrowRight, AlertCircle, CreditCard } from 'lucide-react'
 import { getDivisions, getDistricts, getCities } from '@/utils/bdLocations'
 import toast from 'react-hot-toast'
 
@@ -16,6 +16,7 @@ export default function RiderInfoPage() {
         vehicleType: '',
         vehicleNumber: '',
         licenseNumber: '',
+        nidNumber: '',
         division: '',
         district: '',
         area: '',
@@ -77,8 +78,15 @@ export default function RiderInfoPage() {
         }
 
         // Validation
-        if (!formData.vehicleType || !formData.vehicleNumber || !formData.licenseNumber) {
-            toast.error('Please fill in all vehicle information')
+        if (!formData.vehicleType || !formData.vehicleNumber || !formData.licenseNumber || !formData.nidNumber) {
+            toast.error('Please fill in all vehicle and identification information')
+            return
+        }
+
+        // Validate NID number length (10, 13, or 17 digits)
+        const nidLength = formData.nidNumber.trim().length
+        if (nidLength !== 10 && nidLength !== 13 && nidLength !== 17) {
+            toast.error('NID number must be 10, 13, or 17 digits')
             return
         }
 
@@ -98,6 +106,7 @@ export default function RiderInfoPage() {
                 phoneNumber: riderData.phoneNumber,
                 photoURL: riderData.photoURL,
                 provider: riderData.provider,
+                nidNumber: formData.nidNumber.trim(),
                 vehicleType: formData.vehicleType,
                 vehicleNumber: formData.vehicleNumber.trim(),
                 licenseNumber: formData.licenseNumber.trim(),
@@ -250,6 +259,31 @@ export default function RiderInfoPage() {
                                         placeholder="Enter your license number"
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-base-content mb-2">
+                                    NID Card Number <span className="text-error">*</span>
+                                </label>
+                                <div className="relative">
+                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-base-content/40" />
+                                    <input
+                                        type="text"
+                                        name="nidNumber"
+                                        value={formData.nidNumber}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full pl-12 pr-4 py-3 rounded-lg bg-base-200 border-2 border-base-300 focus:border-primary focus:bg-base-100 outline-none transition-all"
+                                        placeholder="Enter your NID number"
+                                        minLength="10"
+                                        maxLength="17"
+                                        pattern="[0-9]*"
+                                        title="Please enter a valid NID number (10, 13, or 17 digits)"
+                                    />
+                                </div>
+                                <p className="text-xs text-base-content/60 mt-1 ml-1">
+                                    Enter your 10 or 13-17 digit National ID card number
+                                </p>
                             </div>
                         </div>
 
