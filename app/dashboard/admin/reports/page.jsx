@@ -449,40 +449,6 @@ export default function AdminReports() {
         }
     }
 
-    const exportNotifications = async (format) => {
-        setLoading(true)
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`)
-            const data = await response.json()
-
-            if (data.success) {
-                const headers = ['notificationId', 'userId', 'type', 'title', 'message', 'read', 'priority', 'createdAt']
-                const exportData = data.notifications.map(notif => ({
-                    notificationId: notif._id || 'N/A',
-                    userId: notif.userId || 'N/A',
-                    type: notif.type || 'N/A',
-                    title: notif.title || 'N/A',
-                    message: notif.message || 'N/A',
-                    read: notif.read ? 'Yes' : 'No',
-                    priority: notif.priority || 'medium',
-                    createdAt: formatDate(notif.createdAt)
-                }))
-
-                if (format === 'csv') {
-                    const csv = convertToCSV(exportData, headers)
-                    downloadCSV(csv, 'notifications_report')
-                } else {
-                    await downloadExcel(exportData, headers, 'notifications_report')
-                }
-                toast.success(`Notifications exported as ${format.toUpperCase()}!`)
-            }
-        } catch (error) {
-            console.error('Export error:', error)
-            toast.error('Failed to export notifications')
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const previewReport = async (reportType) => {
         setLoading(true)
@@ -579,27 +545,6 @@ export default function AdminReports() {
                         }))
                     }
                     break
-
-                case 'notifications':
-                    response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`)
-                    const notifsData = await response.json()
-                    if (notifsData.success) {
-                        columns = [
-                            { header: 'Title', accessor: 'title' },
-                            { header: 'Type', accessor: 'type' },
-                            { header: 'Priority', accessor: 'priority' },
-                            { header: 'Read', accessor: 'read' },
-                            { header: 'Date', accessor: 'date' }
-                        ]
-                        data = notifsData.notifications.slice(0, 10).map(notif => ({
-                            title: notif.title,
-                            type: notif.type,
-                            priority: notif.priority,
-                            read: notif.read ? 'Yes' : 'No',
-                            date: formatDate(notif.createdAt)
-                        }))
-                    }
-                    break
             }
 
             setPreviewData({ columns, data })
@@ -651,14 +596,6 @@ export default function AdminReports() {
             color: 'from-indigo-500 to-purple-500',
             exportFn: exportRiders,
             preview: 'riders'
-        },
-        {
-            title: 'Notifications',
-            icon: Bell,
-            count: stats.totalNotifications,
-            color: 'from-pink-500 to-rose-500',
-            exportFn: exportNotifications,
-            preview: 'notifications'
         }
     ]
 
