@@ -121,7 +121,7 @@ export default function NotificationDropdown() {
             {/* Bell Icon Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative btn btn-ghost btn-circle hover:bg-base-200 transition-all duration-200"
+                className="relative btn btn-ghost btn-square hover:bg-base-200 transition-all duration-200"
                 aria-label="Notifications"
             >
                 <Bell size={20} className={isOpen ? 'text-primary' : 'text-base-content'} />

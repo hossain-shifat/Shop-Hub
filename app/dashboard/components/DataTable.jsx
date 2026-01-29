@@ -124,7 +124,7 @@ export default function DataTable({
                                     onClick={() => typeof page === 'number' && goToPage(page)}
                                     disabled={page === '...'}
                                     className={`btn btn-sm ${page === currentPage
-                                            ? 'btn-primary'
+                                            ? 'btn-outline btn-success'
                                             : page === '...'
                                                 ? 'btn-ghost cursor-default'
                                                 : 'btn-ghost'

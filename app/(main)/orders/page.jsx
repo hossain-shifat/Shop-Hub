@@ -96,21 +96,21 @@ export default function OrdersPage() {
         if (paymentStatus === 'completed') {
             return (
                 <span className="badge badge-success badge-sm">
-                    <CheckCircle className="w-3 h-3 mr-1" />
+                    <CheckCircle className="w-3 h-3" />
                     Paid
                 </span>
             )
         } else if (paymentStatus === 'pending') {
             return (
                 <span className="badge badge-warning badge-sm">
-                    <Package className="w-3 h-3 mr-1" />
+                    <Package className="w-3 h-3" />
                     Pending
                 </span>
             )
         } else {
             return (
                 <span className="badge badge-error badge-sm">
-                    <XCircle className="w-3 h-3 mr-1" />
+                    <XCircle className="w-3 h-3" />
                     Failed
                 </span>
             )
@@ -437,7 +437,7 @@ export default function OrdersPage() {
                                                         </button>
                                                         <Link
                                                             href={`/track?orderId=${order.orderId}`}
-                                                            className="btn btn-sm btn-outline btn-info tooltip tooltip-left"
+                                                            className="btn btn-sm btn-outline btn-success tooltip tooltip-left"
                                                             data-tip="Track Order"
                                                         >
                                                             <Truck className="w-4 h-4" />
