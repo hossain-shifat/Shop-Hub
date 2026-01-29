@@ -89,42 +89,34 @@ export default function UserOrders() {
                 class: 'bg-info/10 text-info border-info/20',
                 text: 'Processing'
             },
-
             confirmed: {
                 class: 'bg-primary/10 text-primary border-primary/20',
                 text: 'Confirmed'
             },
-
             assigned: {
                 class: 'bg-secondary/10 text-secondary border-secondary/20',
                 text: 'Assigned'
             },
-
             collected: {
                 class: 'bg-accent/10 text-accent border-accent/20',
                 text: 'Collected'
             },
-
             in_transit: {
                 class: 'bg-info/10 text-info border-info/30',
                 text: 'In Transit'
             },
-
             out_for_delivery: {
                 class: 'bg-warning/10 text-warning border-warning/20',
                 text: 'Out for Delivery'
             },
-
             shipped: {
                 class: 'bg-warning/10 text-warning border-warning/30',
                 text: 'Shipped'
             },
-
             delivered: {
                 class: 'bg-success/10 text-success border-success/20',
                 text: 'Delivered'
             },
-
             cancelled: {
                 class: 'bg-error/10 text-error border-error/20',
                 text: 'Cancelled'

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, CheckCircle, XCircle, Clock, Calendar, DollarSign, Search } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { CreditCard, CheckCircle, XCircle, Clock, Calendar, DollarSign, Search, Eye, X, Package, MapPin, ShoppingCart } from 'lucide-react'
+import Image from 'next/image'
 import toast from 'react-hot-toast'
 import useFirebaseAuth from '@/lib/hooks/useFirebaseAuth'
 import Loading from '../../loading'
@@ -12,6 +14,8 @@ export default function UserPayments() {
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [selectedPayment, setSelectedPayment] = useState(null)
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
     const { userData } = useFirebaseAuth()
 
     useEffect(() => {
@@ -51,6 +55,7 @@ export default function UserPayments() {
                 const order = orders.find(o => o.orderId === payment.orderId)
                 return {
                     ...payment,
+                    order: order,
                     orderDate: order?.createdAt,
                     orderStatus: order?.status
                 }
@@ -84,16 +89,21 @@ export default function UserPayments() {
         setFilteredPayments(filtered)
     }
 
+    const handleViewDetails = (payment) => {
+        setSelectedPayment(payment)
+        setIsDetailsModalOpen(true)
+    }
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'succeeded':
             case 'completed':
-                return 'bg-success/10 text-success border-success/20'
+                return 'bg-green-500/10 text-green-600 border-green-500/20'
             case 'pending':
-                return 'bg-warning/10 text-warning border-warning/20'
+                return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
             case 'failed':
             case 'cancelled':
-                return 'bg-error/10 text-error border-error/20'
+                return 'bg-red-500/10 text-red-600 border-red-500/20'
             default:
                 return 'bg-base-300 text-base-content border-base-300'
         }
@@ -103,14 +113,14 @@ export default function UserPayments() {
         switch (status) {
             case 'succeeded':
             case 'completed':
-                return <CheckCircle className="w-5 h-5" />
+                return <CheckCircle className="w-4 h-4" />
             case 'pending':
-                return <Clock className="w-5 h-5" />
+                return <Clock className="w-4 h-4" />
             case 'failed':
             case 'cancelled':
-                return <XCircle className="w-5 h-5" />
+                return <XCircle className="w-4 h-4" />
             default:
-                return <CreditCard className="w-5 h-5" />
+                return <CreditCard className="w-4 h-4" />
         }
     }
 
@@ -184,8 +194,8 @@ export default function UserPayments() {
                         key={filter.value}
                         onClick={() => setStatusFilter(filter.value)}
                         className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${statusFilter === filter.value
-                            ? 'bg-linear-to-r from-primary to-secondary text-primary-content shadow-lg'
-                            : 'bg-base-200 text-base-content hover:bg-base-300'
+                                ? 'bg-primary text-primary-content shadow-lg'
+                                : 'bg-base-200 text-base-content hover:bg-base-300'
                             }`}
                     >
                         {filter.label} ({filter.count})
@@ -197,13 +207,13 @@ export default function UserPayments() {
             <div className="card bg-base-200 p-6">
                 <div className="form-control">
                     <div className="input">
-                        <span className="">
+                        <span className="bg-base-100">
                             <Search className="w-5 h-5" />
                         </span>
                         <input
                             type="text"
                             placeholder="Search by order ID or transaction ID..."
-                            className="flex-1"
+                            className=" w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -222,6 +232,7 @@ export default function UserPayments() {
                             <th>Method</th>
                             <th>Amount</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -255,12 +266,21 @@ export default function UserPayments() {
                                     </span>
                                 </td>
                                 <td>
-                                    <span className={`px-3 py-1 rounded-lg font-semibold border-2 flex items-center gap-2 w-fit ${getStatusColor(payment.status)}`}>
+                                    <span className={`px-3 py-1 rounded-lg text-xs font-semibold border-2 flex items-center gap-2 w-fit ${getStatusColor(payment.status)}`}>
                                         {getStatusIcon(payment.status)}
-                                        <span className="text-xs capitalize">
+                                        <span className="capitalize">
                                             {payment.status}
                                         </span>
                                     </span>
+                                </td>
+                                <td>
+                                    <button
+                                        onClick={() => handleViewDetails(payment)}
+                                        className="btn btn-sm btn-square btn-info"
+                                        title="View Details"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -278,6 +298,210 @@ export default function UserPayments() {
                     </div>
                 )}
             </div>
+
+            {/* Payment Details Modal */}
+            <AnimatePresence>
+                {isDetailsModalOpen && selectedPayment && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setIsDetailsModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-base-100 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+                        >
+                            {/* Modal Header */}
+                            <div className="bg-base-200 p-4 flex items-center justify-between border-b border-base-300">
+                                <div>
+                                    <h2 className="text-xl font-bold text-base-content">Payment Details</h2>
+                                    <p className="text-base-content/60 text-sm font-mono">Transaction: {selectedPayment.transactionId?.slice(0, 20)}...</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsDetailsModalOpen(false)}
+                                    className="btn btn-sm btn-square btn-ghost"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-4 space-y-4 overflow-y-auto flex-1">
+                                {/* Payment Status */}
+                                <div className="card bg-base-200 p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="font-semibold text-sm flex items-center gap-2">
+                                            <CreditCard className="w-4 h-4 text-primary" />
+                                            Payment Status
+                                        </h3>
+                                        <span className={`px-3 py-1 rounded-lg text-xs font-semibold border-2 ${getStatusColor(selectedPayment.status)}`}>
+                                            {getStatusIcon(selectedPayment.status)}
+                                            <span className="ml-2 capitalize">{selectedPayment.status}</span>
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                        <div>
+                                            <span className="text-base-content/60">Amount:</span>
+                                            <span className="ml-2 font-bold text-primary text-sm">
+                                                ${selectedPayment.amount.toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-base-content/60">Currency:</span>
+                                            <span className="ml-2 font-semibold uppercase">{selectedPayment.currency || 'USD'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Payment Information */}
+                                <div className="card bg-base-200 p-3">
+                                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                        <DollarSign className="w-4 h-4 text-primary" />
+                                        Payment Information
+                                    </h3>
+                                    <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                            <span className="text-base-content/60">Payment Method:</span>
+                                            <span className="font-semibold">{selectedPayment.paymentMethod}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-base-content/60">Transaction ID:</span>
+                                            <span className="font-mono font-semibold">{selectedPayment.transactionId}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-base-content/60">Order ID:</span>
+                                            <span className="font-mono font-semibold">{selectedPayment.orderId}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-base-content/60">Payment Date:</span>
+                                            <span className="font-semibold">
+                                                {new Date(selectedPayment.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Order Details */}
+                                {selectedPayment.order && (
+                                    <>
+                                        {/* Order Items */}
+                                        <div className="card bg-base-200 p-3">
+                                            <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                                <ShoppingCart className="w-4 h-4 text-primary" />
+                                                Order Items ({selectedPayment.order.items?.length || 0})
+                                            </h3>
+                                            <div className="space-y-2">
+                                                {selectedPayment.order.items?.map((item, index) => (
+                                                    <div key={index} className="flex gap-2 bg-base-100 p-2 rounded-lg">
+                                                        {item.image && (
+                                                            <Image
+                                                                src={item.image}
+                                                                alt={item.name}
+                                                                width={48}
+                                                                height={48}
+                                                                className="object-cover rounded-lg"
+                                                            />
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-semibold text-sm truncate">{item.name}</h4>
+                                                            <div className="text-xs text-base-content/60">
+                                                                Qty: {item.quantity} × ${item.price?.toFixed(2)}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="font-bold text-sm text-success">
+                                                                ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Shipping Address */}
+                                        {selectedPayment.order.shippingAddress && (
+                                            <div className="card bg-base-200 p-3">
+                                                <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4 text-primary" />
+                                                    Shipping Address
+                                                </h3>
+                                                <div className="text-xs space-y-0.5">
+                                                    <p>{selectedPayment.order.shippingAddress.street}</p>
+                                                    <p>{selectedPayment.order.shippingAddress.city}, {selectedPayment.order.shippingAddress.district}</p>
+                                                    <p>{selectedPayment.order.shippingAddress.division} - {selectedPayment.order.shippingAddress.zipCode}</p>
+                                                    <p>{selectedPayment.order.shippingAddress.country}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Order Summary */}
+                                        <div className="card bg-base-200 p-3">
+                                            <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                                <Package className="w-4 h-4 text-primary" />
+                                                Order Summary
+                                            </h3>
+                                            <div className="space-y-1 text-xs">
+                                                <div className="flex justify-between">
+                                                    <span className="text-base-content/60">Subtotal:</span>
+                                                    <span className="font-semibold">${selectedPayment.order.subtotal?.toFixed(2) || '0.00'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-base-content/60">Shipping:</span>
+                                                    <span className="font-semibold">${selectedPayment.order.shipping?.toFixed(2) || '0.00'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-base-content/60">Tax:</span>
+                                                    <span className="font-semibold">${selectedPayment.order.tax?.toFixed(2) || '0.00'}</span>
+                                                </div>
+                                                <div className="divider my-1"></div>
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="font-bold">Total Paid:</span>
+                                                    <span className="font-bold text-success">${selectedPayment.order.total?.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Additional Info */}
+                                <div className="card bg-base-200 p-3">
+                                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-primary" />
+                                        Timeline
+                                    </h3>
+                                    <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                            <span className="text-base-content/60">Payment Created:</span>
+                                            <span>{new Date(selectedPayment.createdAt).toLocaleString()}</span>
+                                        </div>
+                                        {selectedPayment.updatedAt && (
+                                            <div className="flex justify-between">
+                                                <span className="text-base-content/60">Last Updated:</span>
+                                                <span>{new Date(selectedPayment.updatedAt).toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-3 bg-base-200 border-t border-base-300 flex justify-end">
+                                <button
+                                    onClick={() => setIsDetailsModalOpen(false)}
+                                    className="btn btn-sm btn-primary"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
