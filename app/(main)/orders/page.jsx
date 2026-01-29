@@ -435,6 +435,13 @@ export default function OrdersPage() {
                                                         >
                                                             <FileText className="w-4 h-4" />
                                                         </button>
+                                                        <Link
+                                                            href={`/track?orderId=${order.orderId}`}
+                                                            className="btn btn-sm btn-outline btn-info tooltip tooltip-left"
+                                                            data-tip="Track Order"
+                                                        >
+                                                            <Truck className="w-4 h-4" />
+                                                        </Link>
                                                     </div>
                                                 </td>
                                             </motion.tr>
@@ -632,12 +639,14 @@ export default function OrdersPage() {
                                                 <FileText className="w-4 h-4" />
                                                 View Invoice
                                             </button>
-                                            <Link
-                                                href={`/orders/${selectedOrder.orderId}`}
-                                                className="btn btn-secondary flex-1"
-                                            >
-                                                Track Order
-                                            </Link>
+                                                <Link
+                                                    href={`/track?orderId=${selectedOrder.orderId}`}
+                                                    className="btn btn-secondary flex-1"
+                                                    onClick={() => setSelectedOrder(null)}
+                                                >
+                                                    <Truck className="w-4 h-4" />
+                                                    Track Order
+                                                </Link>
                                         </div>
                                     </div>
                                 )}
