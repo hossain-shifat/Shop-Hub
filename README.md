@@ -39,14 +39,15 @@
 
 ## 🌟 Overview
 
-**ShopHub** is a comprehensive e-commerce solution built with modern web technologies. It features a powerful admin panel, seller dashboard, real-time notifications, secure payment processing, and a beautiful, responsive user interface. Perfect for businesses looking to establish an online presence or developers wanting to learn full-stack development.
+**ShopHub** is a comprehensive e-commerce solution built with modern web technologies. It features a powerful admin panel, seller dashboard, rider management system, real-time notifications, secure payment processing, and a beautiful, responsive user interface. Perfect for businesses looking to establish an online presence or developers wanting to learn full-stack development.
 
 ### Why ShopHub?
 
 - ✅ **Production-Ready** - Built with scalability and performance in mind
 - ✅ **Real-time Updates** - Firebase Firestore for instant notifications
 - ✅ **Secure Payments** - Stripe integration with PCI compliance
-- ✅ **Role-Based Access** - Admin, Seller, and User dashboards
+- ✅ **Role-Based Access** - Admin, Seller, Rider, and User dashboards
+- ✅ **Delivery Management** - Complete rider assignment and tracking system
 - ✅ **Modern UI/UX** - Beautiful gradients, animations, and responsive design
 - ✅ **Auto-Scaling** - MongoDB with TTL indexing and efficient queries
 - ✅ **SEO Optimized** - Server-side rendering with Next.js 16
@@ -65,22 +66,37 @@
 - **Order Tracking** - Real-time order status updates with delivery tracking
 - **User Dashboard** - Manage profile, orders, and payment history
 - **Product Reviews** - Rate and review purchased products
+- **Track Orders** - Live tracking with rider information and location updates
 
 ### 🏪 **Seller Dashboard**
 
 - **Product Management** - Add, edit, delete, and manage product listings
 - **Order Management** - Track and fulfill customer orders
+- **Rider Assignment** - Assign riders to orders for delivery
 - **Inventory Control** - Monitor stock levels with low-stock alerts
 - **Sales Analytics** - View sales performance and revenue metrics
 - **Notification System** - Real-time alerts for new orders and reviews
 - **Multi-Image Upload** - Support for multiple product images
 - **Rich Product Editor** - Add features, specifications, and descriptions
 
+### 🚴 **Rider Dashboard**
+
+- **Task Management** - View and manage delivery assignments
+- **Accept/Reject Deliveries** - Control over delivery acceptance
+- **Status Updates** - Update delivery status (picked up, in transit, delivered)
+- **Earnings Tracking** - Monitor delivery fees and total earnings
+- **Performance Metrics** - Track on-time deliveries, ratings, and completion rate
+- **Order History** - Complete delivery history with earnings breakdown
+- **Profile Management** - Update vehicle info, availability status
+- **Real-time Notifications** - Instant alerts for new delivery assignments
+
 ### 👨‍💼 **Admin Panel**
 
-- **User Management** - View and manage all users (Admin, Seller, User roles)
+- **User Management** - View and manage all users (Admin, Seller, Rider, User roles)
+- **Rider Verification** - Review and approve rider registrations
+- **Rider Assignment** - Assign riders to orders based on location and availability
 - **Product Approval** - Review and approve seller product submissions
-- **Order Monitoring** - Oversee all platform orders
+- **Order Monitoring** - Oversee all platform orders and delivery statuses
 - **Analytics & Reports** - Comprehensive business insights with charts
 - **Data Export** - Export data in CSV/Excel format (orders, users, products, payments)
 - **System Logs** - Monitor platform activities and errors
@@ -96,11 +112,13 @@
 - **Notification Types**:
   - Order placed/confirmed/shipped/delivered/cancelled
   - Payment success/failed
+  - Rider assignment and delivery updates
   - Account created/password changed
   - Product approved/rejected
   - New reviews and ratings
   - Low stock alerts
   - User registrations (Admin)
+  - Rider earnings notifications
 
 ### 💳 **Payment System**
 
@@ -258,6 +276,9 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 # Stripe (Optional for frontend)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+
+# ImgBB API (for image uploads)
+NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
 ```
 
 #### Backend Environment Variables
@@ -397,6 +418,7 @@ Frontend will run on [http://localhost:3000](http://localhost:3000)
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase sender ID | ✅ |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app ID | ✅ |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | ⚠️ |
+| `NEXT_PUBLIC_IMGBB_API_KEY` | ImgBB API key for image uploads | ✅ |
 
 ### Backend (.env)
 
@@ -426,80 +448,182 @@ Frontend will run on [http://localhost:3000](http://localhost:3000)
 ShopHub/
 ├── 📁 app/                          # Next.js App Router
 │   ├── 📁 (auth)/                   # Authentication routes
+│   │   ├── forgot-password/         # Password reset page
 │   │   ├── login/                   # Login page
 │   │   ├── register/                # Registration page
-│   │   └── forgot-password/         # Password reset
+│   │   └── layout.jsx               # Auth layout wrapper
 │   ├── 📁 (main)/                   # Main application routes
-│   │   ├── products/                # Product catalog & details
+│   │   ├── about/                   # About page
 │   │   ├── cart/                    # Shopping cart
 │   │   ├── checkout/                # Checkout process
-│   │   ├── orders/                  # Order history
-│   │   ├── wishlist/                # Saved products
+│   │   ├── contact/                 # Contact page
+│   │   ├── cookies/                 # Cookie policy
+│   │   ├── help/                    # Help center
+│   │   ├── notifications/           # Notifications page
+│   │   ├── order-success/           # Order confirmation
+│   │   ├── orders/                  # Order history & details
+│   │   │   └── [id]/                # Single order details
+│   │   ├── payment-cancel/          # Payment cancelled
+│   │   ├── payment-error/           # Payment error
+│   │   ├── payment-success/         # Payment success
+│   │   ├── privacy/                 # Privacy policy
+│   │   ├── products/                # Product catalog & details
+│   │   │   └── [id]/                # Product details page
 │   │   ├── profile/                 # User profile
+│   │   ├── returns/                 # Returns policy
 │   │   ├── settings/                # User settings
+│   │   ├── shipping/                # Shipping info
+│   │   ├── terms/                   # Terms of service
+│   │   ├── track/                   # Order tracking
+│   │   ├── wishlist/                # Saved products
+│   │   ├── layout.jsx               # Main layout
 │   │   └── page.jsx                 # Landing page
-│   ├── 📁 dashboard/                # Dashboards
-│   │   ├── admin/                   # Admin panel
-│   │   ├── seller/                  # Seller dashboard
-│   │   └── user/                    # User dashboard
+│   ├── 📁 add-product/              # Quick add product (legacy)
+│   │   └── page.jsx
 │   ├── 📁 api/                      # API routes
-│   │   ├── auth/                    # Authentication APIs
-│   │   ├── products/                # Product APIs
-│   │   └── notifications/           # Notification APIs
+│   │   ├── auth/
+│   │   │   └── session/             # Session management
+│   │   ├── notifications/           # Notification APIs
+│   │   │   ├── [id]/
+│   │   │   │   ├── read/            # Mark as read
+│   │   │   │   └── route.js         # Delete notification
+│   │   │   ├── user/
+│   │   │   │   └── [userId]/
+│   │   │   │       └── read-all/    # Mark all as read
+│   │   │   └── route.js             # Get notifications
+│   │   └── products/                # Product APIs
+│   │       ├── [id]/                # Single product
+│   │       └── route.js             # All products
+│   ├── 📁 dashboard/                # Role-based dashboards
+│   │   ├── 📁 admin/                # Admin panel
+│   │   │   ├── assign-rider/        # Assign riders to orders
+│   │   │   ├── logs/                # System logs
+│   │   │   ├── orders/              # Order management
+│   │   │   ├── products/            # Product management
+│   │   │   ├── reports/             # Analytics & reports
+│   │   │   ├── settings/            # Admin settings
+│   │   │   ├── users/               # User management
+│   │   │   └── page.jsx             # Admin dashboard home
+│   │   ├── 📁 components/           # Dashboard components
+│   │   │   ├── charts/              # Chart components
+│   │   │   │   ├── AreaChart.jsx
+│   │   │   │   ├── Index.jsx
+│   │   │   │   ├── LineChart.jsx
+│   │   │   │   ├── PieChart.jsx
+│   │   │   │   └── StatsCard.jsx
+│   │   │   ├── DashboardNavbar.jsx  # Dashboard navigation
+│   │   │   └── DataTable.jsx        # Reusable table component
+│   │   ├── 📁 rider/                # Rider dashboard
+│   │   │   ├── income/              # Earnings tracking
+│   │   │   ├── my-tasks/            # Delivery assignments
+│   │   │   ├── settings/            # Rider settings
+│   │   │   └── page.jsx             # Rider dashboard home
+│   │   ├── 📁 seller/               # Seller dashboard
+│   │   │   ├── add-product/         # Add new product
+│   │   │   ├── assign-rider/        # Assign riders
+│   │   │   ├── orders/              # Seller orders
+│   │   │   ├── products/            # Product management
+│   │   │   ├── settings/            # Seller settings
+│   │   │   └── page.jsx             # Seller dashboard home
+│   │   ├── 📁 user/                 # User dashboard
+│   │   │   ├── orders/              # User orders
+│   │   │   ├── payments/            # Payment history
+│   │   │   ├── settings/            # User settings
+│   │   │   └── page.jsx             # User dashboard home
+│   │   ├── layout.jsx               # Dashboard layout
+│   │   └── loading.jsx              # Dashboard loading state
+│   ├── 📁 rider-info/               # Rider registration
+│   │   └── page.jsx
+│   ├── 404.html                     # Static 404 page
+│   ├── error.jsx                    # Error boundary
 │   ├── globals.css                  # Global styles
+│   ├── icon.png                     # App icon
+│   ├── index.html                   # Static index
 │   ├── layout.jsx                   # Root layout
 │   ├── loading.jsx                  # Loading state
-│   ├── error.jsx                    # Error boundary
 │   └── not-found.jsx                # 404 page
+├── 📁 assets/                       # Static assets
+│   ├── dashboard.png
+│   ├── hero.png
+│   └── products.png
 ├── 📁 backend/                      # Express.js Backend
 │   ├── 📁 src/
+│   │   ├── 📁 config/               # Configuration files
+│   │   ├── 📁 controllers/          # Route controllers
+│   │   ├── 📁 middleware/           # Express middleware
 │   │   ├── 📁 models/               # Mongoose models
-│   │   │   ├── User.js
-│   │   │   ├── Product.js
-│   │   │   ├── Order.js
-│   │   │   ├── Payment.js
-│   │   │   └── Notification.js
+│   │   │   ├── Notification.js      # Notification schema
+│   │   │   ├── Order.js             # Order schema with tracking
+│   │   │   ├── Payment.js           # Payment schema
+│   │   │   ├── Product.js           # Product schema
+│   │   │   ├── Rider.js             # Rider schema
+│   │   │   ├── Settings.js          # Settings schema
+│   │   │   └── User.js              # User schema
 │   │   ├── 📁 routes/               # API routes
-│   │   │   ├── auth.js
-│   │   │   ├── products.js
-│   │   │   ├── orders.js
-│   │   │   ├── payments.js
-│   │   │   └── notifications.js
+│   │   │   ├── auth.js              # Authentication routes
+│   │   │   ├── notifications.js     # Notification routes
+│   │   │   ├── orders.js            # Order routes
+│   │   │   ├── payments.js          # Payment routes
+│   │   │   ├── products.js          # Product routes
+│   │   │   ├── riders.js            # Rider routes
+│   │   │   └── settings.js          # Settings routes
 │   │   ├── 📁 utils/                # Utilities
-│   │   │   ├── notificationService.js
-│   │   │   ├── email.js
-│   │   │   └── invoice.js
+│   │   │   ├── email.js             # Email service
+│   │   │   ├── invoice.js           # Invoice generation
+│   │   │   └── notificationService.js # Notification service
 │   │   └── server.js                # Express app
-│   ├── .env                         # Environment variables
 │   ├── .gitignore
-│   └── package.json
+│   ├── package-lock.json
+│   ├── package.json
+│   └── vercel.json                  # Vercel deployment config
 ├── 📁 components/                   # React components
-│   ├── Navbar.jsx
-│   ├── Footer.jsx
-│   ├── ProtectedRoute.jsx
-│   ├── NotificationDropdown.jsx
-│   ├── Invoice.jsx
-│   └── error-pages/
+│   ├── 📁 error-pages/              # Error page components
+│   │   ├── Error403.jsx
+│   │   └── Error500.jsx
+│   ├── AuthenticatedHome.jsx        # Home for logged-in users
+│   ├── DefaultHomePage.jsx          # Default landing page
+│   ├── Footer.jsx                   # Site footer
+│   ├── Invoice.jsx                  # Invoice component
+│   ├── Logo.jsx                     # Logo component
+│   ├── Navbar.jsx                   # Navigation bar
+│   ├── NotificationDropdown.jsx     # Notification dropdown
+│   ├── ProtectedRoute.jsx           # Route protection
+│   ├── Themetoggle.jsx              # Theme switcher
+│   └── TrackingWidget.jsx           # Order tracking widget
 ├── 📁 contexts/                     # React Context
-│   └── CartContext.jsx
+│   └── CartContext.jsx              # Shopping cart state
 ├── 📁 lib/                          # Libraries & utilities
-│   ├── 📁 firebase/
-│   │   ├── config.js
-│   │   └── auth.js
-│   ├── 📁 hooks/
-│   │   ├── useFirebaseAuth.js
-│   │   └── useNotifications.js
-│   └── 📁 stripe/
-│       └── config.js
+│   ├── 📁 firebase/                 # Firebase configuration
+│   │   ├── auth.js                  # Auth helpers
+│   │   └── config.js                # Firebase config
+│   ├── 📁 hooks/                    # Custom React hooks
+│   │   ├── useFirebaseAuth.js       # Auth hook
+│   │   ├── useNotifications.js      # Notifications hook
+│   │   └── useTheme.js              # Theme hook
+│   ├── 📁 mongodb/                  # MongoDB utilities
+│   │   └── mongodb.js               # MongoDB client
+│   └── 📁 stripe/                   # Stripe configuration
+│       └── config.js                # Stripe config
 ├── 📁 public/                       # Static assets
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── icon.png
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
 ├── 📁 utils/                        # Utility functions
-├── .env.local                       # Frontend environment
+│   ├── bdLocations.js               # Bangladesh location data
+│   └── imageUpload.js               # Image upload utilities
 ├── .gitignore
+├── README.md                        # This file
+├── eslint.config.mjs                # ESLint configuration
+├── jsconfig.json                    # JavaScript config
 ├── middleware.js                    # Next.js middleware
 ├── next.config.mjs                  # Next.js configuration
-├── tailwind.config.js               # Tailwind configuration
-├── package.json
-└── README.md
+├── package-lock.json
+├── package.json                     # Dependencies
+├── postcss.config.mjs               # PostCSS config
+└── tailwind.config.js               # Tailwind configuration
 ```
 
 ---
@@ -513,7 +637,8 @@ ShopHub/
 | `POST` | `/api/auth/register` | Register new user | ❌ |
 | `POST` | `/api/auth/login` | Login user | ❌ |
 | `GET` | `/api/auth/user/:uid` | Get user by UID | ❌ |
-| `PATCH` | `/api/auth/user/:uid` | Update user | ✅ |
+| `PATCH` | `/api/auth/users/:uid` | Update user | ✅ |
+| `GET` | `/api/auth/users` | Get all users (Admin) | ✅ |
 
 ### Product Endpoints
 
@@ -534,6 +659,7 @@ ShopHub/
 | `GET` | `/api/orders/user/:userId` | Get user orders | ✅ |
 | `GET` | `/api/orders/:orderId` | Get single order | ✅ |
 | `PATCH` | `/api/orders/:orderId/status` | Update order status | ✅ |
+| `GET` | `/api/orders/tracking/:trackingId` | Track order | ❌ |
 
 ### Payment Endpoints
 
@@ -542,17 +668,36 @@ ShopHub/
 | `POST` | `/api/payments/create-checkout-session` | Create Stripe session | ✅ |
 | `POST` | `/api/payments/verify-session` | Verify payment | ✅ |
 | `GET` | `/api/payments/order/:orderId` | Get payment details | ✅ |
+| `GET` | `/api/payments` | Get all payments (Admin) | ✅ |
 
 ### Notification Endpoints
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/api/notifications/user/:userId` | Get user notifications | ✅ |
-| `GET` | `/api/notifications/user/:userId/count` | Get unread count | ✅ |
+| `GET` | `/api/notifications/user/:userId/unread-count` | Get unread count | ✅ |
 | `POST` | `/api/notifications` | Create notification | ✅ |
 | `PATCH` | `/api/notifications/:id/read` | Mark as read | ✅ |
 | `PATCH` | `/api/notifications/user/:userId/read-all` | Mark all as read | ✅ |
 | `DELETE` | `/api/notifications/:id` | Delete notification | ✅ |
+
+### Rider Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/riders/register` | Register as rider | ✅ |
+| `GET` | `/api/riders` | Get all riders (Admin) | ✅ |
+| `GET` | `/api/riders/available` | Get available riders | ✅ |
+| `GET` | `/api/riders/unverified` | Get unverified riders | ✅ |
+| `GET` | `/api/riders/:uid` | Get rider details | ✅ |
+| `PATCH` | `/api/riders/:uid/verify` | Verify rider (Admin) | ✅ |
+| `POST` | `/api/riders/verify-all` | Verify all riders | ✅ |
+| `POST` | `/api/riders/assign` | Assign rider to order | ✅ |
+| `POST` | `/api/riders/accept-delivery` | Accept delivery | ✅ |
+| `POST` | `/api/riders/reject-delivery` | Reject delivery | ✅ |
+| `PATCH` | `/api/riders/update-status` | Update delivery status | ✅ |
+| `GET` | `/api/riders/:riderId/orders` | Get rider orders | ✅ |
+| `GET` | `/api/riders/:riderId/earnings` | Get rider earnings | ✅ |
 
 ---
 
@@ -633,6 +778,7 @@ railway up
 - [ ] Set up MongoDB Atlas IP whitelist
 - [ ] Test all authentication flows
 - [ ] Test payment processing
+- [ ] Test rider assignment and delivery tracking
 - [ ] Test notifications
 - [ ] Verify error pages work
 - [ ] Check mobile responsiveness
@@ -686,6 +832,13 @@ Role: admin
 Email: seller@shophub.com
 Password: seller123
 Role: seller
+```
+
+**Rider**
+```
+Email: rider@shophub.com
+Password: rider123
+Role: rider
 ```
 
 **User**
@@ -750,7 +903,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 🙏 Acknowledgments
+## 💡 Acknowledgments
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Firebase Documentation](https://firebase.google.com/docs)
